@@ -1,0 +1,25 @@
+# Aplicația publică, rulată de pe calculatorul tău, printr-un tunel Cloudflare gratuit (fără cont).
+# Emailurile pleacă direct din contul de Gmail/Yahoo al organizatorului, fără intermediari.
+#
+# Pornire:       docker compose -f docker-compose.yml -f docker-compose.public.yml up -d --build
+# Linkul public: docker compose -f docker-compose.yml -f docker-compose.public.yml logs tunnel
+# Oprire:        docker compose -f docker-compose.yml -f docker-compose.public.yml down
+#
+# Linkul (https://....trycloudflare.com) se schimbă la fiecare repornire a tunelului.
+services:
+  web:
+    environment:
+      # Vizitatorii vin prin tunel: IP-ul real și https vin din headerele lui.
+      - BEHIND_PROXY=1
+      # Gol: linkurile din emailuri folosesc adresa tunelului, nu localhost.
+      - PUBLIC_URL=
+    ports: !override
+      # Doar pentru tine, pe acest calculator; din internet se intră prin tunel.
+      - "127.0.0.1:8000:8000"
+
+  tunnel:
+    image: cloudflare/cloudflared:2026.10.0
+    command: tunnel --no-autoupdate --url http://web:8000
+    depends_on:
+      - web
+    restart: unless-stopped

@@ -1,0 +1,4 @@
+# Finaluri de rând Linux peste tot (containerul Docker rulează pe Linux)
+* text=auto eol=lf
+*.png binary
+*.svg text eol=lf

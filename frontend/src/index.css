@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@400;700;900&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #FFF8F0;
+  color: #2c3e50;
+  line-height: 1.6;
+}
+
+@media (max-width: 480px) {
+  .xmas-nav { padding: 0 12px !important; }
+  .nav-logo { font-size: 1.05rem !important; letter-spacing: 0 !important; }
+  .nav-link { padding: 8px 6px !important; font-size: 0.82rem !important; }
+  .xmas-theme-toggle { width: 32px; height: 32px; margin-left: 2px; font-size: 1rem; }
+}

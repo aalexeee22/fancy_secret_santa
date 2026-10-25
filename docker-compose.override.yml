@@ -1,0 +1,6 @@
+# Doar pentru dezvoltare: Docker Compose îl citește automat lângă docker-compose.yml.
+# Pe server nu-l copia, sau pornește cu: docker compose -f docker-compose.yml up -d
+services:
+  db:
+    ports:
+      - "127.0.0.1:5432:5432"   # doar localhost, nu toată rețeaua

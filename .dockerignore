@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+.venv
+.idea
+.git
+instance
+data
+frontend/node_modules
+frontend/dist
+security_tests
+migrations
+tests.md
+docker-compose*.yml

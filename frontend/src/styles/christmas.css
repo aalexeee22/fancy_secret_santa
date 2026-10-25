@@ -1,0 +1,709 @@
+/* =========================================================
+   Secret Santa: efecte de Crăciun
+   Toate decorațiile au pointer-events: none și aria-hidden.
+   ========================================================= */
+
+:root {
+  --xmas-red: #990C0C;
+  --xmas-red-2: #C0392B;
+  --xmas-green: #164B32;
+  --xmas-green-2: #1E8449;
+  --xmas-gold: #D5A538;
+  --xmas-gold-2: #F2CD6B;
+  --xmas-snow: #FFF7EB;
+  --xmas-ink: #2B3E50;
+  --xmas-shadow-warm: 0 16px 40px rgba(153, 12, 12, 0.14), 0 0 0 1px rgba(213, 165, 56, 0.25);
+}
+
+/* ---------- Ninsoare ---------- */
+.xmas-snow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.xmas-snow--fixed { position: fixed; }
+.xmas-snow__flake {
+  position: absolute;
+  top: -32px;
+  line-height: 1;
+  color: #fff;
+  user-select: none;
+  animation-name: xmas-snowfall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+.xmas-snow--ice .xmas-snow__flake { color: #b8cbdd; }
+.xmas-snow__flake--glow { text-shadow: 0 0 6px rgba(255, 255, 255, 0.9), 0 0 12px rgba(242, 205, 107, 0.5); }
+@keyframes xmas-snowfall {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(var(--drift), calc(var(--fall) / 2), 0) rotate(180deg); }
+  100% { transform: translate3d(0, var(--fall), 0) rotate(360deg); }
+}
+
+/* ---------- Instalația de sub navbar ---------- */
+.xmas-lights {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 22px;
+  pointer-events: none;
+  z-index: 1;
+}
+.xmas-lights__wire {
+  position: absolute;
+  inset: 0 0 auto 0;
+  width: 100%;
+  height: 10px;
+  overflow: visible;
+}
+.xmas-lights__wire path {
+  fill: none;
+  stroke: #2f3d31;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.xmas-lights__bulb {
+  position: absolute;
+  top: 5px;
+  width: 8px;
+  height: 12px;
+  margin-left: -4px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: var(--bulb);
+  box-shadow: 0 0 8px 3px var(--bulb);
+  animation: xmas-bulb 1.8s ease-in-out infinite;
+}
+.xmas-lights__bulb::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: #3b463c;
+}
+@keyframes xmas-bulb {
+  0%, 100% { opacity: 1; box-shadow: 0 0 9px 3px var(--bulb); }
+  50% { opacity: 0.45; box-shadow: 0 0 2px 0 var(--bulb); }
+}
+
+/* ---------- Sania ---------- */
+.xmas-sleigh-lane {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 16px);
+  height: 80px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.xmas-sleigh {
+  position: absolute;
+  left: 100%;
+  top: 38px;
+  white-space: nowrap;
+  font-size: 26px;
+  opacity: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  animation: xmas-sleigh-ride 36s linear 5s infinite;
+}
+.xmas-sleigh__trail {
+  margin-left: 6px;
+  font-size: 14px;
+  color: var(--xmas-gold-2);
+  letter-spacing: 6px;
+  text-shadow: 0 0 6px rgba(242, 205, 107, 0.9);
+}
+@keyframes xmas-sleigh-ride {
+  0% { transform: translate(0, 0); opacity: 0; }
+  1% { opacity: 1; }
+  22% { transform: translate(calc(-100vw - 340px), -28px); opacity: 1; }
+  23%, 100% { transform: translate(calc(-100vw - 340px), -28px); opacity: 0; }
+}
+
+/* ---------- Decor hero: lumini, crenguțe, globuri, particule ---------- */
+.xmas-decor { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.xmas-glow {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 214, 120, 0.34), rgba(255, 214, 120, 0) 65%);
+  animation: xmas-glow-pulse 7s ease-in-out infinite;
+}
+@keyframes xmas-glow-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+.xmas-branch { position: absolute; width: clamp(140px, 22vw, 300px); height: auto; }
+.xmas-branch--tl { top: -14px; left: -24px; }
+.xmas-branch--tr { top: -14px; right: -24px; transform: scaleX(-1); }
+.xmas-branch--br { bottom: -30px; right: -30px; transform: scale(-1, -1); }
+.xmas-branch--bl { bottom: -30px; left: -30px; transform: scaleY(-1); }
+.xmas-hanging {
+  position: absolute;
+  top: 0;
+  transform-origin: top center;
+  animation: xmas-swing 4s ease-in-out infinite;
+}
+/* În SVG, originea se raportează implicit la tot desenul; fill-box o mută pe glob (punctul de agățare). */
+g.xmas-hanging { transform-box: fill-box; }
+@keyframes xmas-swing {
+  0%, 100% { transform: rotate(6deg); }
+  50% { transform: rotate(-6deg); }
+}
+.xmas-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--xmas-gold-2);
+  box-shadow: 0 0 6px 2px rgba(242, 205, 107, 0.6);
+  animation: xmas-float-up linear infinite;
+}
+@keyframes xmas-float-up {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translateY(-190px) scale(1); opacity: 0; }
+}
+.xmas-twinkle { animation: xmas-twinkle 2.6s ease-in-out infinite; }
+@keyframes xmas-twinkle {
+  0%, 100% { opacity: 0.35; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+.xmas-float { display: inline-block; animation: xmas-float 4s ease-in-out infinite; }
+@keyframes xmas-float {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-12px) rotate(3deg); }
+}
+
+/* ---------- Butoane festive ---------- */
+.festive-btn.festive-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: auto;
+  padding: 14px 34px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  line-height: 1.3;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease;
+}
+.festive-btn--block.festive-btn--block { display: flex; width: 100%; }
+.festive-btn--small.festive-btn--small { padding: 8px 18px; font-size: 0.9rem; }
+.festive-btn--red.festive-btn--red {
+  background: linear-gradient(135deg, var(--xmas-red), var(--xmas-red-2)) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 6px 20px rgba(153, 12, 12, 0.32);
+}
+.festive-btn--light.festive-btn--light {
+  background: #fff !important;
+  color: var(--xmas-red) !important;
+  border: none !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+.festive-btn--ghost.festive-btn--ghost {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #fff !important;
+  border: 2px solid rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(10px);
+}
+.festive-btn--gold.festive-btn--gold {
+  background: linear-gradient(135deg, #f6d77c, var(--xmas-gold)) !important;
+  color: #4a3405 !important;
+  border: none !important;
+  box-shadow: 0 6px 20px rgba(213, 165, 56, 0.4);
+}
+.festive-btn--green.festive-btn--green {
+  background: linear-gradient(135deg, var(--xmas-green-2), var(--xmas-green)) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 6px 20px rgba(22, 75, 50, 0.32);
+}
+.festive-btn:hover:not(:disabled):not(.ant-btn-loading) {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(153, 12, 12, 0.3), 0 0 0 3px rgba(213, 165, 56, 0.35), 0 0 26px rgba(242, 205, 107, 0.55);
+}
+.festive-btn:active:not(:disabled) { transform: translateY(0) scale(0.96); }
+.festive-btn:focus-visible { outline: 3px solid var(--xmas-gold); outline-offset: 3px; }
+.festive-btn:disabled,
+.festive-btn[disabled] {
+  filter: grayscale(0.55);
+  opacity: 0.7;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.festive-btn__label { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 8px; }
+.festive-btn__shine {
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
+  z-index: 0;
+}
+.festive-btn:hover:not(:disabled) .festive-btn__shine { animation: xmas-shine 0.9s ease; }
+@keyframes xmas-shine {
+  from { left: -60%; }
+  to { left: 130%; }
+}
+.festive-btn__gift { display: inline-block; }
+.festive-btn:hover:not(:disabled) .festive-btn__gift { animation: xmas-wiggle 0.6s ease; }
+@keyframes xmas-wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  20% { transform: rotate(-14deg) scale(1.12); }
+  40% { transform: rotate(12deg) scale(1.08); }
+  60% { transform: rotate(-8deg); }
+  80% { transform: rotate(4deg); }
+}
+
+/* Butonul de tragere când pragul e atins */
+.xmas-draw-ready.xmas-draw-ready {
+  background: linear-gradient(135deg, var(--xmas-red), #c0392b 55%, var(--xmas-gold)) !important;
+  animation: xmas-ready-glow 2.2s ease-in-out infinite;
+}
+@keyframes xmas-ready-glow {
+  0%, 100% { box-shadow: 0 6px 20px rgba(153, 12, 12, 0.35), 0 0 0 0 rgba(242, 205, 107, 0.5); }
+  50% { box-shadow: 0 6px 24px rgba(153, 12, 12, 0.45), 0 0 0 8px rgba(242, 205, 107, 0); }
+}
+
+/* ---------- Carduri ---------- */
+.xmas-hover-lift { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+.xmas-hover-lift:hover { transform: translateY(-5px); box-shadow: var(--xmas-shadow-warm); }
+.xmas-corner-star {
+  position: absolute;
+  top: -16px;
+  right: -8px;
+  font-size: 30px;
+  pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(242, 205, 107, 0.8));
+  animation: xmas-twinkle 3.2s ease-in-out infinite;
+}
+
+/* ---------- Apariție la scroll ---------- */
+.xmas-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.68s ease, transform 0.68s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.xmas-reveal.is-visible { opacity: 1; transform: none; }
+
+/* ---------- Calendarul de Advent (Cum funcționează) ---------- */
+.advent-card { height: 100%; position: relative; }
+.advent-door {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  perspective: 400px;
+}
+.advent-door__back,
+.advent-door__front {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.advent-door__back { background: var(--xmas-snow); font-size: 2rem; box-shadow: inset 0 0 0 2px rgba(213, 165, 56, 0.45); }
+.advent-door__front {
+  background: linear-gradient(135deg, var(--door), color-mix(in srgb, var(--door) 70%, #000));
+  color: #fff;
+  font: 900 1.6rem Georgia, serif;
+  border: 2px solid var(--xmas-gold);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  transform-origin: left center;
+  transition: transform 0.9s cubic-bezier(0.5, 0, 0.2, 1), box-shadow 0.9s;
+  backface-visibility: hidden;
+}
+.is-visible .advent-door__front { transform: rotateY(-118deg); box-shadow: 0 0 22px rgba(242, 205, 107, 0.9); }
+.advent-number {
+  display: inline-block;
+  font: 800 0.75rem Inter, sans-serif;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--door);
+  margin-bottom: 4px;
+}
+.is-visible .advent-number { animation: xmas-number-glow 1.4s ease forwards; }
+@keyframes xmas-number-glow {
+  0% { text-shadow: none; }
+  50% { text-shadow: 0 0 12px rgba(242, 205, 107, 1); }
+  100% { text-shadow: 0 0 4px rgba(242, 205, 107, 0.5); }
+}
+
+/* ---------- FAQ ---------- */
+.xmas-faq { position: relative; overflow: visible; }
+.xmas-faq__ornament {
+  position: absolute;
+  top: 0;
+  right: 22px;
+  pointer-events: none;
+  animation-duration: 1.6s;
+  animation-play-state: paused;
+}
+.xmas-faq:hover .xmas-faq__ornament { animation-play-state: running; }
+
+/* ---------- Particule de confetti ---------- */
+.xmas-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 2000; overflow: hidden; }
+.xmas-confetti__burst { position: absolute; width: 0; height: 0; }
+.xmas-confetti__piece {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: var(--size);
+  line-height: 1;
+  animation: xmas-confetti var(--dur) cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
+}
+@keyframes xmas-confetti {
+  0% { transform: translate(-50%, -50%) scale(0.4) rotate(0deg); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + 90px)) scale(1) rotate(var(--rot)); opacity: 0; }
+}
+
+/* ---------- Steluțe la copiere ---------- */
+.xmas-sparkles { position: absolute; inset: 0; pointer-events: none; overflow: visible; z-index: 3; }
+.xmas-sparkle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  font-size: 14px;
+  color: var(--xmas-gold);
+  text-shadow: 0 0 6px rgba(242, 205, 107, 0.9);
+  animation: xmas-sparkle-burst 0.9s ease-out forwards;
+}
+@keyframes xmas-sparkle-burst {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.1) rotate(90deg); opacity: 0; }
+}
+.xmas-pop { animation: xmas-pop 0.35s ease; }
+@keyframes xmas-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+
+/* ---------- Cadoul care se construiește ---------- */
+.xmas-gift { display: block; width: 100%; height: auto; overflow: visible; }
+.xmas-gift__box,
+.xmas-gift__lid,
+.xmas-gift__ribbon,
+.xmas-gift__bow,
+.xmas-gift__stars,
+.xmas-gift__outline,
+.xmas-gift__burst {
+  transform-box: fill-box;
+  transition: transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1), opacity 0.4s ease;
+}
+.xmas-gift__box { transform-origin: center bottom; }
+.xmas-gift__lid { transform-origin: center bottom; }
+.xmas-gift__bow { transform-origin: center bottom; }
+.xmas-gift:not(.has-box) .xmas-gift__box,
+.xmas-gift:not(.has-box) .xmas-gift__lid { opacity: 0; transform: scale(0.4); }
+.xmas-gift.has-box .xmas-gift__outline { opacity: 0; }
+.xmas-gift__outline { stroke-dasharray: 6 6; animation: xmas-dash 6s linear infinite; }
+@keyframes xmas-dash { to { stroke-dashoffset: -120; } }
+.xmas-gift:not(.has-ribbon) .xmas-gift__ribbon { opacity: 0; }
+.xmas-gift:not(.has-ribbon) .xmas-gift__bow { opacity: 0; transform: scale(0); }
+.xmas-gift:not(.has-sparkles) .xmas-gift__stars { opacity: 0; transform: scale(0.6); }
+.xmas-gift.has-sparkles .xmas-gift__star { animation: xmas-twinkle 2.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.xmas-gift__burst { opacity: 0; transform-origin: center; transform: scale(0.4); }
+.xmas-gift.is-open .xmas-gift__lid { transform: translate(-16px, -54px) rotate(-24deg); transition-delay: 0.25s; }
+.xmas-gift.is-open .xmas-gift__bow { transform: translate(-16px, -54px) rotate(-24deg); transition-delay: 0.25s; }
+.xmas-gift.is-open .xmas-gift__burst { opacity: 1; transform: scale(1); transition-delay: 0.45s; }
+.xmas-gift.is-wiggling .xmas-gift__box { animation: xmas-shake 0.6s ease; }
+
+.xmas-elf { display: inline-block; font-size: 2.6rem; animation: xmas-elf-bob 3s ease-in-out infinite; }
+.xmas-elf--hop { animation: xmas-elf-hop 0.7s ease, xmas-elf-bob 3s ease-in-out 0.7s infinite; }
+@keyframes xmas-elf-bob {
+  0%, 100% { transform: rotate(-5deg) translateY(0); }
+  50% { transform: rotate(5deg) translateY(-7px); }
+}
+@keyframes xmas-elf-hop {
+  0% { transform: translateY(0) rotate(0); }
+  40% { transform: translateY(-22px) rotate(-10deg); }
+  70% { transform: translateY(0) rotate(6deg); }
+  100% { transform: translateY(0) rotate(0); }
+}
+
+/* ---------- Empty states ---------- */
+.xmas-empty { text-align: center; padding: 32px 16px; }
+.xmas-empty__scene { position: relative; display: inline-flex; align-items: flex-end; gap: 6px; margin-bottom: 12px; }
+.xmas-empty__prop { font-size: 2.4rem; }
+.xmas-empty__zzz {
+  position: absolute;
+  top: -8px;
+  left: 30px;
+  font: 700 0.95rem Georgia, serif;
+  color: #8aa0b4;
+  animation: xmas-zzz 2.8s ease-in-out infinite;
+}
+@keyframes xmas-zzz {
+  0% { transform: translate(0, 0); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translate(14px, -26px); opacity: 0; }
+}
+.xmas-elf--sleeping { animation: xmas-sleep 3.4s ease-in-out infinite; }
+@keyframes xmas-sleep {
+  0%, 100% { transform: rotate(-8deg) scale(1); }
+  50% { transform: rotate(-8deg) scale(1.04); }
+}
+.xmas-fade-in { animation: xmas-fade-in 0.6s ease both; }
+@keyframes xmas-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ---------- Statistici ---------- */
+.xmas-stat { height: 100%; text-align: center; position: relative; overflow: hidden; }
+.xmas-stat:hover { transform: translateY(-7px) rotate(-0.5deg); }
+.xmas-stat__scene { position: relative; height: 70px; margin-bottom: 4px; display: flex; align-items: flex-end; justify-content: center; }
+.xmas-stat__wiggle { display: inline-block; }
+.xmas-stat:hover .xmas-stat__wiggle { animation: xmas-wiggle 0.6s ease; }
+
+/* Grupuri create: bradul crește și se împodobește */
+.story-tree { position: relative; display: inline-block; font-size: 3rem; line-height: 1; transform-origin: bottom center; transform: scale(0.3); }
+.is-visible .story-tree { animation: xmas-grow 0.9s cubic-bezier(0.3, 1.4, 0.5, 1) forwards; }
+@keyframes xmas-grow { to { transform: scale(1); } }
+.story-tree__dot,
+.story-tree__star { position: absolute; opacity: 0; transform: scale(0); }
+.story-tree__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 5px var(--c); }
+.story-tree__star { top: -12px; left: 50%; margin-left: -9px; font-size: 18px; }
+.is-visible .story-tree__dot,
+.is-visible .story-tree__star { animation: xmas-pop-in-scale 0.35s ease forwards; }
+@keyframes xmas-pop-in-scale { to { opacity: 1; transform: scale(1); } }
+
+/* Participanți: spiridușii se alătură */
+.story-elves { display: flex; gap: 2px; font-size: 2rem; }
+.story-elves span { display: inline-block; opacity: 0; transform: translateX(-30px); }
+.is-visible .story-elves span { animation: xmas-join 0.5s ease forwards; }
+@keyframes xmas-join { to { opacity: 1; transform: none; } }
+
+/* Email: plicul zboară */
+.story-envelope { display: inline-block; font-size: 2.4rem; opacity: 0; transform: translate(-40px, 30px) rotate(-20deg); }
+.is-visible .story-envelope { animation: xmas-fly-in 1s ease-out forwards, xmas-hover-float 3s ease-in-out 1s infinite; }
+@keyframes xmas-fly-in {
+  60% { opacity: 1; transform: translate(6px, -8px) rotate(8deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes xmas-hover-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Medie: săniuța urcă panta */
+.story-slope { position: relative; display: inline-block; width: 96px; height: 60px; }
+.story-slope svg { position: absolute; inset: 0; }
+.story-slope__sled { position: absolute; left: -2px; bottom: 0; font-size: 1.7rem; line-height: 1; transform-origin: bottom left; }
+.is-visible .story-slope__sled { animation: xmas-climb 1.6s ease-in-out forwards; }
+@keyframes xmas-climb { to { transform: translate(56px, -26px) rotate(-24deg); } }
+
+/* Barele graficelor */
+.xmas-bar {
+  position: relative;
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+  transform-origin: bottom;
+  transform: scaleY(0);
+  transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.is-visible .xmas-bar { transform: scaleY(1); }
+.xmas-bar--zero::after { display: none; }
+.xmas-bar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4px;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(90deg, #f6d77c, var(--xmas-gold));
+  box-shadow: 0 0 8px rgba(242, 205, 107, 0.8);
+}
+
+/* Glob de zăpadă */
+.xmas-globe {
+  display: inline-block;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  vertical-align: middle;
+  border-radius: 50%;
+}
+.xmas-globe:focus-visible { outline: 3px solid var(--xmas-gold); outline-offset: 3px; }
+.xmas-globe.is-shaking { animation: xmas-shake 0.8s ease; }
+.xmas-globe .xmas-globe__flake { animation: xmas-globe-settle 3s ease-in-out infinite; }
+.xmas-globe.is-shaking .xmas-globe__flake { animation: xmas-globe-swirl 0.8s ease-in-out; }
+@keyframes xmas-globe-settle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(2px); }
+}
+@keyframes xmas-globe-swirl {
+  0% { transform: translate(0, 0); }
+  40% { transform: translate(var(--sx), -12px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ---------- Pagina de admin ---------- */
+.xmas-greeting {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--xmas-red-2), var(--xmas-red));
+  border-radius: 20px;
+  padding: 28px;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(153, 12, 12, 0.3);
+}
+.xmas-greeting__branch { position: absolute; top: -10px; right: -18px; width: 150px; pointer-events: none; transform: scaleX(-1); }
+.xmas-greeting__bauble { position: absolute; top: 0; right: 64px; }
+.xmas-greeting__star { position: absolute; color: var(--xmas-gold-2); text-shadow: 0 0 8px rgba(242, 205, 107, 0.9); animation: xmas-twinkle 4s ease-in-out infinite; pointer-events: none; }
+.xmas-budget-pill {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  padding: 4px 14px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(246, 215, 124, 0.95), var(--xmas-gold));
+  color: #4a3405;
+  font-weight: 800;
+}
+.xmas-budget-pill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  transform: skewX(-20deg);
+  animation: xmas-shine 3.5s ease-in-out 1s infinite;
+}
+.xmas-parchment {
+  position: relative;
+  margin-top: 14px;
+  padding: 14px 14px 14px 54px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, #fff8dc, #fbe7a6);
+  border: 1px solid #e7c873;
+  box-shadow: inset 0 0 18px rgba(184, 134, 11, 0.18);
+  color: #6b4e05;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+.xmas-parchment__lock { position: absolute; left: 12px; top: 14px; width: 30px; height: 36px; }
+.xmas-participant { animation: xmas-pop-in 0.5s cubic-bezier(0.3, 1.3, 0.5, 1) both; }
+@keyframes xmas-pop-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+.xmas-sack { display: block; margin: 0 auto; overflow: visible; }
+.xmas-sack.is-waiting { animation: xmas-shake 1.6s ease-in-out infinite; transform-origin: bottom center; }
+.xmas-sack.is-ready { animation: xmas-bounce-once 0.8s ease; transform-origin: bottom center; }
+.xmas-sack__fill { transition: y 0.8s ease, height 0.8s ease; }
+@keyframes xmas-shake {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-6deg); }
+  40% { transform: rotate(6deg); }
+  60% { transform: rotate(-4deg); }
+  80% { transform: rotate(4deg); }
+}
+@keyframes xmas-bounce-once {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  70% { transform: translateY(2px); }
+}
+
+/* Modalul tragerii la sorți */
+.xmas-draw-stage { position: relative; height: 170px; display: flex; align-items: center; justify-content: center; }
+.xmas-draw-stage__sack { font-size: 4.2rem; line-height: 1; }
+.xmas-draw-stage.is-drawing .xmas-draw-stage__sack { animation: xmas-shake 0.7s ease-in-out infinite; }
+.xmas-orbit { position: absolute; inset: 0; animation: xmas-spin 2.6s linear infinite; }
+.xmas-orbit span { position: absolute; left: 50%; top: 50%; font-size: 1.4rem; }
+@keyframes xmas-spin { to { transform: rotate(360deg); } }
+
+/* ---------- Footer de iarnă ---------- */
+.xmas-footer { position: relative; overflow: hidden; background: linear-gradient(180deg, #0f2a22, var(--xmas-green)); color: rgba(255, 255, 255, 0.85); }
+.xmas-footer__scene { display: block; width: 100%; height: 150px; }
+.xmas-footer__window { animation: xmas-window 3.5s ease-in-out infinite; }
+@keyframes xmas-window {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+.xmas-footer__text { position: relative; z-index: 1; text-align: center; padding: 14px 16px 22px; background: #FFF7EB; color: var(--xmas-ink); font-size: 0.9rem; }
+
+/* Panoul cu cadoul din „Grup nou” */
+.xmas-gift-panel__gift { width: 200px; }
+@media (max-width: 991px) {
+  .xmas-gift-panel__gift { width: 110px; }
+  .xmas-gift-panel__steps { font-size: 0.8rem !important; gap: 2px !important; }
+}
+
+/* Comutatorul de temă din navbar */
+.xmas-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-left: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+.xmas-theme-toggle:hover { transform: rotate(-12deg) scale(1.08); background: rgba(255, 255, 255, 0.25); }
+.xmas-theme-toggle:focus-visible { outline: 3px solid var(--xmas-gold); outline-offset: 2px; }
+
+/* ---------- Ecrane mici ---------- */
+@media (max-width: 767px) {
+  .xmas-branch { width: 130px; }
+  .xmas-branch--br,
+  .xmas-branch--bl,
+  .xmas-hide-mobile { display: none; }
+  .festive-btn.festive-btn { padding: 13px 26px; }
+  .xmas-greeting__branch { width: 110px; }
+}
+
+/* ---------- Mai puține animații, la cerere ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .xmas-snow,
+  .xmas-sleigh-lane,
+  .xmas-particle,
+  .xmas-confetti,
+  .xmas-sparkles { display: none !important; }
+  [class*="xmas-"],
+  [class*="xmas-"] *,
+  [class*="story-"],
+  .festive-btn,
+  .festive-btn *,
+  .advent-door__front,
+  .advent-number {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+  .xmas-reveal { opacity: 1; transform: none; }
+  .advent-door__front { display: none; }
+  .story-tree,
+  .story-elves span,
+  .story-envelope,
+  .story-tree__dot,
+  .story-tree__star { opacity: 1 !important; transform: none !important; }
+  .xmas-bar { transform: none; }
+}

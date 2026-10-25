@@ -1,0 +1,28 @@
+# Secrete: nu urca niciodată pe GitHub
+.env
+.env.*
+!.env.example
+
+# Baze de date locale
+instance/
+data/
+*.db
+*.sqlite
+
+# Medii și build-uri
+.venv/
+__pycache__/
+*.pyc
+frontend/node_modules/
+frontend/dist/
+
+# Editoare și unelte locale
+.idea/
+.vscode/
+
+# Rezultatele testelor
+security_tests/audit_results.json
+security_tests/audit_robustness_results.json
+
+# Note locale
+tests.md

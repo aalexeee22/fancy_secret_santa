@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="720" viewBox="285 170 790 730">
+<defs>
+<radialGradient id="bg"><stop stop-color="#df713b"/><stop offset=".53" stop-color="#cf482c"/><stop offset="1" stop-color="#be3028"/></radialGradient>
+<radialGradient id="fur" cx=".44" cy=".44" r=".72"><stop stop-color="#ffcb70"/><stop offset=".58" stop-color="#ffad45"/><stop offset="1" stop-color="#e98423"/></radialGradient>
+<linearGradient id="ear" x1="0" x2=".8" y1="0" y2="1"><stop stop-color="#ffd078"/><stop offset="1" stop-color="#e88224"/></linearGradient>
+<linearGradient id="earPink" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#ffc9b5"/><stop offset="1" stop-color="#f28e80"/></linearGradient>
+<linearGradient id="hat" x1=".1" x2=".9" y1=".1" y2="1"><stop stop-color="#f50031"/><stop offset=".55" stop-color="#d8002b"/><stop offset="1" stop-color="#a60021"/></linearGradient>
+<linearGradient id="white" x1=".3" x2=".7" y1="0" y2="1"><stop stop-color="#fff"/><stop offset=".58" stop-color="#fff"/><stop offset=".85" stop-color="#f5f2fc"/><stop offset="1" stop-color="#dcd7f0"/></linearGradient>
+<radialGradient id="pomp" cx=".35" cy=".22" r=".83"><stop stop-color="#fff"/><stop offset=".69" stop-color="#fff"/><stop offset="1" stop-color="#e7e2f4"/></radialGradient>
+<radialGradient id="eye" cx=".35" cy=".25"><stop stop-color="#304559"/><stop offset=".55" stop-color="#15273d"/><stop offset="1" stop-color="#0b1629"/></radialGradient>
+<linearGradient id="cheek" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#ffc4b4"/><stop offset="1" stop-color="#f88e91"/></linearGradient>
+<linearGradient id="beard" x1=".3" x2=".8" y1="0" y2="1"><stop stop-color="#fff"/><stop offset=".63" stop-color="#fff"/><stop offset="1" stop-color="#e9e3f7"/></linearGradient>
+</defs>
+
+<!-- Santa hat back -->
+<path d="M472 359C542 253 650 202 767 192c114-13 172 35 221 110l-54 105-56 7-263 49Z" fill="url(#hat)"/>
+<path d="M548 314C609 258 694 223 786 215" fill="none" stroke="#ff5070" stroke-width="20" stroke-linecap="round" opacity=".75"/>
+<path d="M864 244q57 44 25 109l-31 13 10-43q-26-43-4-79Z" fill="#a90024" opacity=".78"/>
+<circle cx="1017" cy="349" r="73" fill="url(#pomp)"/>
+<!-- ears -->
+<path d="M423 556Q354 489 369 319q3-51 51-25 89 41 140 132L520 574Z" fill="url(#ear)"/>
+<path d="M421 468q-24-61-21-127 45 17 91 78l-6 113Z" fill="url(#earPink)"/>
+<path d="M855 416q72-45 116-34 43 5 18 105-16 75-67 110l-52-74Z" fill="url(#ear)"/>
+<path d="M888 442q27-21 81-32-6 74-55 116Z" fill="url(#earPink)"/>
+<!-- head -->
+<path d="M443 463C486 437 564 428 663 433c118 3 204 32 245 79 55 63 45 151-5 207-40 46-107 72-243 74-112 2-215-19-251-74-41-63-32-189 34-256Z" fill="url(#fur)"/>
+<!-- fur markings -->
+<path d="M653 472q14 19 47 15-9 31-22 46-28 7-25-61Z" fill="#d77b29" opacity=".72"/>
+<path d="M402 601q37-24 56-6-19 19-59 36Z" fill="#c97121" opacity=".65"/>
+<path d="M913 617q-27-21-36-10-3 12 37 41Z" fill="#c77123" opacity=".7"/>
+<path d="M401 654q41 2 53 25l-49-10Z" fill="#e8842d"/>
+<path d="M916 670q-32 4-53 30l38-5Z" fill="#e8842d"/>
+<!-- eyebrows -->
+<path d="M543 519q15-19 34-13" stroke="#894119" stroke-width="11" stroke-linecap="round" fill="none"/>
+<path d="M773 518q19 0 37 19" stroke="#894119" stroke-width="11" stroke-linecap="round" fill="none"/>
+<!-- eyes -->
+<ellipse cx="559" cy="600" rx="45" ry="47" fill="url(#eye)"/>
+<ellipse cx="779" cy="614" rx="45" ry="47" fill="url(#eye)"/>
+<ellipse cx="574" cy="578" rx="14" ry="14" fill="white"/><ellipse cx="771" cy="590" rx="14" ry="14" fill="white"/>
+<circle cx="533" cy="621" r="7" fill="#69788c" opacity=".76"/><circle cx="796" cy="635" r="7" fill="#69788c" opacity=".76"/>
+<!-- cheek cream patches -->
+<path d="M429 663q-1-46 48-47 51 3 53 56-63 35-101-9Z" fill="#fff0d0"/>
+<path d="M792 671q4-47 57-47 44 1 43 44-46 33-100 3Z" fill="#fff0d0"/>
+<circle cx="490" cy="651" r="33" fill="url(#cheek)"/><circle cx="841" cy="674" r="33" fill="url(#cheek)"/>
+<!-- Beard layered lobes -->
+<path d="M460 674q-42 43 0 104 15 24 43 28 14 39 54 40 14 0 31-11 24 41 64 45 51-2 71-35 45 29 83-3 37 0 52-44 28-6 28-45-3-48-42-80-98-58-201-36-124-27-183 37Z" fill="url(#beard)"/>
+<path d="M484 732q-16 69 44 83 13 24 46 16 18 23 53 25" stroke="#f9f7fd" stroke-width="25" fill="none" stroke-linecap="round" opacity=".8"/>
+<path d="M832 728q23 63-20 85-30 10-54-3-18 32-46 31" stroke="#f9f7fd" stroke-width="23" fill="none" stroke-linecap="round" opacity=".65"/>
+<!-- mouth -->
+<path d="M623 668q8 32 40 25 28 0 34-25-1 61-36 70-40-5-38-70Z" fill="#602020"/>
+<path d="M639 724q24-24 47-4-25 27-47 4Z" fill="#f04d65"/>
+<!-- white muzzle layered over mouth top -->
+<path d="M519 663q33 17 64-15 29-29 59-13 16 13 19 35-11 30-52 39-42 9-62-7-27-8-28-39Z" fill="url(#white)"/>
+<path d="M662 663q15-37 48-29 25 6 49 31 20 16 43 12-2 29-37 42-51 14-71-14-25-3-32-42Z" fill="url(#white)"/>
+<!-- nose -->
+<path d="M647 633q4-5 26-4 23 1 25 8 0 7-26 27-20-14-25-25-2-4 0-6Z" fill="#e84870"/>
+<path d="M659 634q14-5 28 1" fill="none" stroke="#ff8da7" stroke-width="5" stroke-linecap="round"/>
+<!-- whiskers -->
+<g fill="none" stroke="#8c532b" stroke-linecap="round" stroke-width="11"><path d="M442 658Q389 639 329 641"/><path d="M441 680Q379 682 332 704"/><path d="M878 680Q926 673 995 678"/><path d="M877 706Q934 711 981 734"/></g>
+<!-- hat white brim (front) -->
+<path d="M424 517q-23-15-7-68 9-34 49-48 85-32 203-28 169 1 234 46 40 30 44 78 3 42-29 67-26-55-127-72-113-23-233-10-107 7-134 35Z" fill="url(#white)"/>
+<path d="M431 511q79-39 213-37 180-2 266 50" fill="none" stroke="#ffffff" stroke-width="5" opacity=".18"/>
+</svg>
