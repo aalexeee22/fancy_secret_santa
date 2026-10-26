@@ -3,7 +3,16 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: import.meta.env.DEV ? 'http://localhost:5000' : '',
   headers: { 'Content-Type': 'application/json' },
+  // Mereu de la server: /api/admin are aceeași adresă pentru toate grupurile, iar un
+  // răspuns „expirat” păstrat de browser de la un grup vechi ar ascunde grupul nou.
+  adapter: 'fetch',
+  fetchOptions: { cache: 'no-store' },
 });
+
+/** Limba în care serverul scrie mesajele de eroare și emailurile. */
+export const setApiLanguage = (lang: string) => {
+  api.defaults.headers.common['Accept-Language'] = lang;
+};
 
 export const createGroup = (data: {
   name: string;

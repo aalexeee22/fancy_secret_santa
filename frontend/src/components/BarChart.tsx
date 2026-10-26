@@ -6,13 +6,15 @@ interface BarChartProps {
   data: Record<string, number>;
   /** ordinea barelor; serverul trimite cheile sortate alfabetic */
   order: string[];
+  /** etichete traduse pentru cheile care nu sunt simple intervale */
+  labels?: Record<string, string>;
   title: string;
   color: string;
   /** afișat în locul graficului când toate valorile sunt 0 */
   empty: ReactNode;
 }
 
-export default function BarChart({ data, order, title, color, empty }: BarChartProps) {
+export default function BarChart({ data, order, labels = {}, title, color, empty }: BarChartProps) {
   const entries = order.filter(label => label in data).map(label => [label, data[label]] as const);
   const max = Math.max(...entries.map(([, v]) => v), 1);
   const isEmpty = entries.every(([, v]) => v === 0);
@@ -24,7 +26,7 @@ export default function BarChart({ data, order, title, color, empty }: BarChartP
         <RevealOnScroll>
           <div role="list" style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 160 }}>
             {entries.map(([label, val], i) => (
-              <div role="listitem" key={label} aria-label={`${label}: ${val}`} style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
+              <div role="listitem" key={label} aria-label={`${labels[label] ?? label}: ${val}`} style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
                 <span style={{ fontSize: '0.75rem', fontWeight: 700, color }}>{val}</span>
                 <div
                   className={val > 0 ? 'xmas-bar' : 'xmas-bar xmas-bar--zero'}
@@ -35,7 +37,7 @@ export default function BarChart({ data, order, title, color, empty }: BarChartP
                     transitionDelay: `${i * 90}ms`,
                   }}
                 />
-                <span style={{ fontSize: '0.7rem', color: '#7f8c8d', textAlign: 'center', lineHeight: 1.2, minHeight: '1.7em' }}>{label}</span>
+                <span style={{ fontSize: '0.7rem', color: '#7f8c8d', textAlign: 'center', lineHeight: 1.2, minHeight: '1.7em' }}>{labels[label] ?? label}</span>
               </div>
             ))}
           </div>

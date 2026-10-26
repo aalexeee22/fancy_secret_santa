@@ -1,5 +1,6 @@
 import { Progress } from 'antd';
 import { useId } from 'react';
+import { useI18n } from '../../i18n/i18nContext';
 
 interface GiftSackProgressProps {
   count: number;
@@ -10,16 +11,15 @@ interface GiftSackProgressProps {
 /** Sacul de cadouri se umple pe măsură ce vin participanții, până la pragul de tragere. */
 export default function GiftSackProgress({ count, minimum }: GiftSackProgressProps) {
   const id = useId();
+  const { t } = useI18n();
   const ratio = Math.min(count / minimum, 1);
   const ready = count >= minimum;
   const missing = minimum - count;
   const fillHeight = 70 * ratio;
 
   const message = ready
-    ? 'Echipa lui Moș Crăciun e pregătită!'
-    : missing === 1
-      ? 'Mai lipsește un spiriduș!'
-      : `Mai lipsesc ${missing} spiriduși!`;
+    ? t.sack.ready
+    : t.admin.missing(missing);
 
   return (
     <div style={{ textAlign: 'center' }}>
@@ -52,7 +52,7 @@ export default function GiftSackProgress({ count, minimum }: GiftSackProgressPro
         percent={Math.round(ratio * 100)}
         showInfo={false}
         strokeColor={{ '0%': '#990C0C', '100%': '#D5A538' }}
-        aria-label={`${count} din minimum ${minimum} participanți`}
+        aria-label={t.sack.progressAria(count, minimum)}
       />
       <div aria-live="polite" style={{ fontWeight: 700, color: ready ? '#1E8449' : '#7f8c8d', fontSize: '0.9rem' }}>
         {message}

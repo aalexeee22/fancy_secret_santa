@@ -9,9 +9,22 @@ import socket
 from cryptography.fernet import Fernet, InvalidToken
 from flask import current_app, request
 
+from .i18n import t
+
 
 class ValidationError(ValueError):
-    """Input invalid de la utilizator; devine un răspuns 400 cu mesajul în română."""
+    """Input invalid de la utilizator; devine un răspuns 400 cu mesajul în limba cererii.
+
+    Primește cheia mesajului din app/i18n.py, nu textul, ca să poată fi tradus.
+    """
+
+    def __init__(self, key, **params):
+        super().__init__(key)
+        self.key = key
+        self.params = params
+
+    def __str__(self):
+        return t(self.key, **self.params)
 
 
 MAX_LENGTHS = {
@@ -36,30 +49,32 @@ _CONTROL_CHARS_RE = re.compile(r'[\x00-\x1f\x7f]')
 def json_body():
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
-        raise ValidationError('Cerere invalidă.')
+        raise ValidationError('invalid_request')
     return data
 
 
-def clean_text(value, field, label, required=True, multiline=False):
+def clean_text(value, field, label=None, required=True, multiline=False):
+    """`label` e câmpul afișat în mesajul de eroare, dacă diferă de cel după care se ia lungimea maximă."""
+    label = label or field
     if value is None:
         value = ''
     if not isinstance(value, str):
-        raise ValidationError(f'{label} trebuie să fie text.')
+        raise ValidationError('field_not_text', field=label)
     value = value.strip()
     if required and not value:
-        raise ValidationError(f'{label} este obligatoriu!')
+        raise ValidationError('field_required', field=label)
     if len(value) > MAX_LENGTHS[field]:
-        raise ValidationError(f'{label} poate avea maxim {MAX_LENGTHS[field]} caractere.')
+        raise ValidationError('field_too_long', field=label, max=MAX_LENGTHS[field])
     checked = re.sub(r'[\r\n\t]', '', value) if multiline else value
     if _CONTROL_CHARS_RE.search(checked):
-        raise ValidationError(f'{label} conține caractere nepermise.')
+        raise ValidationError('field_bad_chars', field=label)
     return value
 
 
-def clean_email(value, label='Emailul'):
+def clean_email(value, label='email'):
     email = clean_text(value, 'email', label).lower()
     if not _EMAIL_RE.match(email):
-        raise ValidationError(f'{label} nu este o adresă validă.')
+        raise ValidationError('email_invalid', field=label)
     return email
 
 
@@ -70,9 +85,9 @@ def clean_budget(value):
     try:
         budget = float(value)
     except (TypeError, ValueError):
-        raise ValidationError('Bugetul trebuie să fie un număr pozitiv!')
+        raise ValidationError('budget_not_number')
     if not math.isfinite(budget) or budget <= 0 or budget > MAX_BUDGET_RON:
-        raise ValidationError(f'Bugetul trebuie să fie între 1 și {MAX_BUDGET_RON:,} RON.'.replace(',', '.'))
+        raise ValidationError('budget_range')
     return budget
 
 
@@ -84,17 +99,17 @@ def check_smtp_target(host, port):
     """
     if port not in ALLOWED_SMTP_PORTS:
         ports = ', '.join(str(p) for p in sorted(ALLOWED_SMTP_PORTS))
-        raise ValidationError(f'Portul SMTP trebuie să fie unul dintre: {ports}.')
+        raise ValidationError('smtp_port_invalid', ports=ports)
     try:
         infos = socket.getaddrinfo(host, port, proto=socket.IPPROTO_TCP)
     except (socket.gaierror, UnicodeError):
-        raise ValidationError('Serverul SMTP nu a fost găsit.')
+        raise ValidationError('smtp_not_found')
     for info in infos:
         ip = ipaddress.ip_address(info[4][0])
         if ip.is_loopback:
             continue
         if ip.is_private or ip.is_link_local or ip.is_reserved or ip.is_multicast or ip.is_unspecified:
-            raise ValidationError('Serverul SMTP nu poate fi o adresă din rețeaua internă.')
+            raise ValidationError('smtp_internal')
 
 
 def is_loopback_host(host):

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import ChristmasSnow from './ChristmasSnow';
 import Character from './Character';
 import { seededRandom } from './random';
+import { useI18n } from '../../i18n/i18nContext';
 
 const TREES = [
   { x: 60, s: 1.1 }, { x: 140, s: 0.8 }, { x: 230, s: 1.3 }, { x: 330, s: 0.9 },
@@ -20,6 +21,7 @@ function Tree({ x, s }: { x: number; s: number }) {
 
 /** Peisaj de iarnă în subsolul tuturor paginilor: brazi, o căsuță luminată și zăpadă. */
 export default function WinterFooter() {
+  const { t } = useI18n();
   const stars = useMemo(() => {
     const rand = seededRandom(3);
     return Array.from({ length: 30 }, (_, i) => ({ id: i, x: rand() * 1200, y: rand() * 70, r: 0.6 + rand() * 1.4, delay: `${rand() * 3}s` }));
@@ -51,7 +53,7 @@ export default function WinterFooter() {
         <path d="M0 132 Q300 120 600 136 T1200 130 V150 H0 Z" fill="#FFF7EB" />
       </svg>
       <div className="xmas-footer__text">
-        <Character role="santa" /> Secret Santa · făcut cu ❤️ și multă zăpadă în Atelierul lui Moș Crăciun
+        <Character role="santa" /> {t.footer}
       </div>
     </footer>
   );

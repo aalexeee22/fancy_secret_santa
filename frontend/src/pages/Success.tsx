@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Card } from 'antd';
 import { FestiveLink } from '../components/christmas/FestiveButton';
 import { useChristmasConfetti } from '../components/christmas/confettiContext';
+import { useI18n } from '../i18n/i18nContext';
 
 interface SuccessState {
   name: string;
@@ -16,6 +17,7 @@ export default function Success() {
   const state = location.state as SuccessState | null;
   const fireConfetti = useChristmasConfetti();
   const fired = useRef(false);
+  const { success: t } = useI18n().t;
 
   // Pagina e afișată doar după o înscriere reușită, deci aici e momentul sărbătorii.
   useEffect(() => {
@@ -30,20 +32,20 @@ export default function Success() {
         <Card className="xmas-fade-in" style={{ textAlign: 'center', boxShadow: '0 8px 40px rgba(0,0,0,0.08)' }} styles={{ body: { padding: 'clamp(28px, 6vw, 48px)' } }}>
           <span className="xmas-corner-star" aria-hidden="true">⭐</span>
           <div className="xmas-float" style={{ fontSize: '4rem' }} aria-hidden="true">🎉</div>
-          <h1 style={{ fontFamily: 'Georgia, serif', color: '#27AE60', marginTop: 16 }}>Ești în echipă!</h1>
+          <h1 style={{ fontFamily: 'Georgia, serif', color: '#27AE60', marginTop: 16 }}>{t.title}</h1>
           <p role="status" style={{ color: '#7f8c8d', fontSize: '1.1rem', marginTop: 8 }}>
-            <strong>{state?.name || 'Tu'}</strong>, te-ai înscris cu succes la <strong>{state?.groupName || 'Secret Santa'}</strong>!
+            <strong>{state?.name || t.you}</strong>, {t.joined} <strong>{state?.groupName || 'Secret Santa'}</strong>!
           </p>
           <div style={{ background: 'linear-gradient(135deg,#EBF5FB,#D6EAF8)', borderRadius: 16, padding: '24px', margin: '24px 0' }}>
             <div style={{ fontSize: '2rem' }} aria-hidden="true">📬</div>
-            <p style={{ fontWeight: 700, margin: '8px 0 4px', color: '#2c3e50' }}>Urmărește-ți emailul!</p>
-            <p style={{ color: '#5d6d7e', fontSize: '0.9rem', margin: 0 }}>Când organizatorul trage la sorți, vei primi un email cu Secret Santa-ul tău.</p>
+            <p style={{ fontWeight: 700, margin: '8px 0 4px', color: '#2c3e50' }}>{t.watchEmail}</p>
+            <p style={{ color: '#5d6d7e', fontSize: '0.9rem', margin: 0 }}>{t.watchEmailText}</p>
           </div>
           <div style={{ background: '#F0FFF4', borderRadius: 12, padding: '12px 20px', marginBottom: 28, borderLeft: '4px solid #27AE60' }}>
-            👥 <strong>{state?.count || '?'}</strong> {state?.count === 1 ? 'persoană înscrisă' : 'persoane înscrise'} până acum
-            {state?.budget != null && <> · 💰 min. <strong>{Math.round(state.budget)} RON</strong></>}
+            👥 <strong>{state?.count || '?'}</strong> {t.joinedCount(state?.count ?? 0)}
+            {state?.budget != null && <> · 💰 {t.min} <strong>{Math.round(state.budget)} RON</strong></>}
           </div>
-          <FestiveLink to="/" tone="red" small>🏠 Pagina principală</FestiveLink>
+          <FestiveLink to="/" tone="red" small>{t.home}</FestiveLink>
         </Card>
       </div>
     </div>

@@ -12,9 +12,9 @@ os.environ['RATELIMIT_ENABLED'] = '0'
 os.environ['FLASK_DEBUG'] = '0'
 
 from app import create_app, db
-from app.models import SantaGroup
+from app.models import Participant, SantaGroup
 from app.security import decrypt_secret
-from app.services.email_service import SMTP_SELECTIONS, _detect_smtp
+from app.services.email_service import SMTP_SELECTIONS, EmailService, _detect_smtp
 
 
 class EmailSetupTests(unittest.TestCase):
@@ -83,6 +83,11 @@ class EmailSetupTests(unittest.TestCase):
             self.assertEqual(self.create(smtp_provider='gmail').status_code, 400)
             self.assertEqual(self.create(smtp_provider='yahoo').status_code, 400)
 
+    def test_api_responses_are_never_cached(self):
+        # Un 410 păstrat de browser pentru /api/admin ar ascunde un grup nou.
+        response = self.client.get('/api/admin', headers={'X-Admin-Code': 'nu-exista'})
+        self.assertEqual(response.headers['Cache-Control'], 'no-store')
+
     def test_health_and_unknown_api(self):
         self.assertEqual(self.client.get('/health').json, {'status': 'ok'})
         self.assertEqual(self.client.get('/api/does-not-exist').status_code, 404)
@@ -91,7 +96,40 @@ class EmailSetupTests(unittest.TestCase):
         self.assertEqual(self.create(smtp_email='organizer@gmail.com').status_code, 400)
         response = self.client.post('/api/groups', json={'name': 'Without email'})
         self.assertEqual(response.status_code, 400)
-        self.assertIn('Gmail sau Yahoo', response.json['error'])
+        self.assertIn('Gmail or Yahoo', response.json['error'])
+
+    def test_errors_follow_accept_language(self):
+        for lang, expected in [('ro', 'Gmail sau Yahoo'), ('fr', 'Gmail ou Yahoo'), ('tr', 'Gmail veya Yahoo'), ('it', 'Gmail o Yahoo'), ('de', 'Gmail or Yahoo')]:
+            response = self.client.post('/api/groups', json={'name': 'Without email'}, headers={'Accept-Language': lang})
+            self.assertIn(expected, response.json['error'], lang)
+        response = self.client.post('/api/groups', json={'name': ''}, headers={'Accept-Language': 'ro'})
+        self.assertEqual(response.json['error'], 'Câmpul „Numele grupului” este obligatoriu!')
+
+    def test_language_is_saved_for_emails(self):
+        response = self.client.post('/api/groups', json={
+            'name': 'Limbi', 'smtp_provider': 'gmail', 'smtp_email': 'org@gmail.com', 'smtp_password': 'x',
+        }, headers={'Accept-Language': 'it'})
+        self.assertEqual(response.status_code, 201)
+        joined = self.client.post(f"/api/groups/{response.json['code']}/participants",
+                                  json={'name': 'Ana', 'email': 'ana@ex.ro'}, headers={'Accept-Language': 'tr'})
+        self.assertEqual(joined.status_code, 201)
+        group = db.session.get(SantaGroup, response.json['id'])
+        giver = db.session.get(Participant, joined.json['id'])
+        self.assertEqual(group.language, 'it')
+        self.assertEqual(giver.language, 'tr')
+
+        # Emailul cu perechea e în limba participantului, cel de admin în a organizatorului.
+        self.sender.stop()  # aici vrem emailul de admin real, doar fără trimitere
+        with patch('app.services.email_service._send', return_value=True) as send:
+            EmailService.send_assignment(giver, giver, group)
+            EmailService.send_admin_link(group, 'http://localhost/admin#x')
+        self.sender.start()
+        (_, _, subject, assignment_html), _ = send.call_args_list[0]
+        self.assertIn('Merhaba Ana!', assignment_html)
+        self.assertIn('Dilek belirtilmemiş', assignment_html)
+        (_, _, subject, admin_html), _ = send.call_args_list[1]
+        self.assertEqual(subject, 'Il tuo link admin per Limbi')
+        self.assertIn('Apri la pagina admin', admin_html)
 
 if __name__ == '__main__':
     unittest.main()

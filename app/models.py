@@ -28,6 +28,8 @@ class SantaGroup(db.Model):
     smtp_password = db.Column(db.Text, nullable=True)
     smtp_host = db.Column(db.String(200), nullable=True)
     smtp_port = db.Column(db.Integer, nullable=True)
+    # Limba organizatorului, pentru emailul cu linkul de admin.
+    language = db.Column(db.String(5), nullable=True)
     participants = db.relationship(
         'Participant',
         backref='group',
@@ -61,6 +63,8 @@ class Participant(db.Model):
         post_update=True,
     )
     email_sent = db.Column(db.Boolean, nullable=False, default=False)
+    # Limba în care s-a înscris: emailul cu perechea vine în aceeași limbă.
+    language = db.Column(db.String(5), nullable=True)
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 

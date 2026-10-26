@@ -1,8 +1,9 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { App as AntApp, ConfigProvider, Spin } from 'antd';
-import roRO from 'antd/locale/ro_RO';
-import { christmasTheme } from './theme';
+import { App as AntApp, Spin } from 'antd';
+import I18nProvider from './i18n/I18nProvider';
+import { useI18n } from './i18n/i18nContext';
+import LanguageSwitcher from './components/LanguageSwitcher';
 import ChristmasSnow from './components/christmas/ChristmasSnow';
 import ChristmasLights from './components/christmas/ChristmasLights';
 import SantaSleigh from './components/christmas/SantaSleigh';
@@ -23,6 +24,7 @@ const StatsPage = lazy(() => import('./pages/Stats'));
 function Navbar() {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
+  const { t } = useI18n();
 
   return (
     <nav className="xmas-nav" style={{
@@ -37,13 +39,15 @@ function Navbar() {
         </Link>
         <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
           {[
-            { path: '/create', label: '🎄 Grup nou' },
-            { path: '/stats', label: '📊 Statistici' },
-          ].map(({ path, label }) => (
+            { path: '/create', icon: '🎄', label: t.nav.newGroup },
+            { path: '/stats', icon: '📊', label: t.nav.stats },
+          ].map(({ path, icon, label }) => (
             <Link
               key={path}
               to={path}
               className="nav-link"
+              aria-label={label}
+              title={label}
               style={{
                 whiteSpace: 'nowrap',
                 color: isActive(path) ? '#FFD700' : 'rgba(255,255,255,0.85)',
@@ -56,10 +60,13 @@ function Navbar() {
                 transition: 'all 0.2s',
               }}
             >
-              {label}
+              <span aria-hidden="true">{icon}</span>
+              {/* Pe telefon rămâne doar iconița, ca să încapă și butoanele de temă și limbă. */}
+              <span className="nav-link__text"> {label}</span>
             </Link>
           ))}
           <ThemeToggle />
+          <LanguageSwitcher />
         </div>
       </div>
       <ChristmasLights />
@@ -93,7 +100,7 @@ function AppInner() {
 
 export default function App() {
   return (
-    <ConfigProvider theme={christmasTheme} locale={roRO}>
+    <I18nProvider>
       <AntApp>
         <XmasThemeProvider>
           <ChristmasConfettiProvider>
@@ -103,6 +110,6 @@ export default function App() {
           </ChristmasConfettiProvider>
         </XmasThemeProvider>
       </AntApp>
-    </ConfigProvider>
+    </I18nProvider>
   );
 }

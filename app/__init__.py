@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_limiter import Limiter
@@ -70,7 +70,7 @@ def create_app():
     render_url = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
     if render_url and render_url not in origins:
         origins.append(render_url)
-    CORS(app, resources={r"/api/*": {"origins": origins}}, allow_headers=['Content-Type', 'X-Admin-Code'])
+    CORS(app, resources={r"/api/*": {"origins": origins}}, allow_headers=['Content-Type', 'Accept-Language', 'X-Admin-Code'])
 
     limiter.init_app(app)
     db.init_app(app)
@@ -79,6 +79,7 @@ def create_app():
     app.register_blueprint(bp)
 
     from .security import ValidationError
+    from .i18n import t
 
     @app.errorhandler(ValidationError)
     def handle_validation_error(e):
@@ -86,17 +87,14 @@ def create_app():
 
     @app.errorhandler(HTTPException)
     def handle_http_error(e):
-        messages = {
-            413: 'Cererea este prea mare.',
-            429: 'Prea multe cereri. Mai încearcă peste puțin timp.',
-        }
-        return jsonify({'error': messages.get(e.code, e.description)}), e.code
+        messages = {413: 'request_too_large', 429: 'too_many_requests'}
+        return jsonify({'error': t(messages[e.code]) if e.code in messages else e.description}), e.code
 
     @app.errorhandler(Exception)
     def handle_unexpected_error(e):
         db.session.rollback()
         app.logger.exception('Eroare neașteptată')
-        return jsonify({'error': 'A apărut o eroare pe server.'}), 500
+        return jsonify({'error': t('server_error')}), 500
 
     @app.after_request
     def security_headers(response):
@@ -104,15 +102,24 @@ def create_app():
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['Referrer-Policy'] = 'no-referrer'
         response.headers['Content-Security-Policy'] = CSP
+        # /api/admin are aceeași adresă pentru toate grupurile (codul e în header), deci
+        # un 410 „expirat” păstrat de browser ar apărea și la un grup nou. Nimic din API nu se salvează.
+        if request.path.startswith('/api/'):
+            response.headers['Cache-Control'] = 'no-store'
         return response
 
     with app.app_context():
         db.create_all()
-        # Migrare aditivă pentru bazele existente; parola și repartizările se păstrează.
-        if 'smtp_username' not in {column['name'] for column in inspect(db.engine).get_columns('santa_groups')}:
-            optional = 'IF NOT EXISTS ' if db.engine.dialect.name == 'postgresql' else ''
-            db.session.execute(text(f'ALTER TABLE santa_groups ADD COLUMN {optional}smtp_username VARCHAR(200)'))
-            db.session.commit()
+        # Migrări aditive pentru bazele existente; parola și repartizările se păstrează.
+        optional = 'IF NOT EXISTS ' if db.engine.dialect.name == 'postgresql' else ''
+        for table, column, sql_type in (
+            ('santa_groups', 'smtp_username', 'VARCHAR(200)'),
+            ('santa_groups', 'language', 'VARCHAR(5)'),
+            ('participants', 'language', 'VARCHAR(5)'),
+        ):
+            if column not in {c['name'] for c in inspect(db.engine).get_columns(table)}:
+                db.session.execute(text(f'ALTER TABLE {table} ADD COLUMN {optional}{column} {sql_type}'))
+                db.session.commit()
         # gunicorn face fork după create_app (preload_app=True); fiecare worker
         # trebuie să-și deschidă propriile conexiuni, nu să le moștenească.
         db.engine.dispose()

@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react';
+import { useI18n } from '../../i18n/i18nContext';
 
 const FLAKES = [
   { cx: 20, cy: 18, sx: '6px' }, { cx: 34, cy: 14, sx: '-5px' }, { cx: 27, cy: 26, sx: '4px' },
@@ -7,6 +8,7 @@ const FLAKES = [
 
 /** Glob de zăpadă mic care se agită la click. */
 export default function SnowGlobe() {
+  const { t } = useI18n();
   const [shakes, setShakes] = useState(0);
   const [settled, setSettled] = useState(0);
   const shaking = shakes !== settled;
@@ -22,8 +24,8 @@ export default function SnowGlobe() {
       type="button"
       className={`xmas-globe${shaking ? ' is-shaking' : ''}`}
       onClick={() => setShakes(n => n + 1)}
-      aria-label="Agită globul de zăpadă"
-      title="Agită-mă!"
+      aria-label={t.stats.shakeGlobe}
+      title={t.stats.shakeMe}
     >
       <svg width="56" height="64" viewBox="0 0 56 64" aria-hidden="true" focusable="false">
         <defs>

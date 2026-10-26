@@ -9,12 +9,10 @@ from .security import (
 from .services.santa_service import SantaService
 from .services.email_service import EmailService, SMTP_SELECTIONS
 from .services.delivery_service import enqueue_assignments, notify_worker
+from .i18n import request_language, t
 import os
 
 bp = Blueprint('main', __name__)
-
-ADMIN_LINK_EXPIRED = 'Linkul de admin a expirat: tragerea la sorți a avut loc și toți și-au primit emailul.'
-GROUP_NOT_FOUND = 'Grupul nu a fost găsit!'
 
 FRONTEND_DIST = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'frontend', 'dist')
 
@@ -88,23 +86,23 @@ def find_admin_group():
 @limiter.limit('10 per hour')
 def create_group():
     data = json_body()
-    name = clean_text(data.get('name'), 'group_name', 'Numele grupului')
+    name = clean_text(data.get('name'), 'group_name')
     budget = clean_budget(data.get('budget'))
 
     smtp_email = smtp_password = smtp_host = smtp_port = None
     provider = data.get('smtp_provider')
     if provider is not None and (not isinstance(provider, str) or provider not in SMTP_SELECTIONS):
-        raise ValidationError('Providerul de email nu este valid.')
+        raise ValidationError('provider_invalid')
     # Fără email, nimeni n-ar afla perechile: nici organizatorul nu le vede.
     if not provider:
-        raise ValidationError('Alege contul de email (Gmail sau Yahoo) de pe care pleacă perechile.')
+        raise ValidationError('provider_required')
     if provider:
-        smtp_email = clean_email(data.get('smtp_email'), 'Emailul organizatorului')
-        smtp_password = clean_text(data.get('smtp_password'), 'smtp_password', 'Parola de email')
+        smtp_email = clean_email(data.get('smtp_email'), 'smtp_email')
+        smtp_password = clean_text(data.get('smtp_password'), 'smtp_password')
         # Hostul vine din lista serverului; orice smtp_host trimis de client e ignorat.
         smtp_host, smtp_port = SMTP_SELECTIONS[provider]
         if smtp_port in current_app.config['SMTP_BLOCKED_PORTS']:
-            raise ValidationError('Serverul pe care rulează aplicația blochează portul acestui provider.')
+            raise ValidationError('provider_port_blocked')
 
     group = SantaGroup(
         name=name,
@@ -113,6 +111,7 @@ def create_group():
         smtp_password=encrypt_secret(smtp_password) if smtp_password else None,
         smtp_host=smtp_host,
         smtp_port=smtp_port,
+        language=request_language(),
     )
     db.session.add(group)
     db.session.commit()
@@ -130,7 +129,7 @@ def create_group():
 def get_group(code):
     group = SantaGroup.query.filter_by(code=code).first()
     if not group:
-        return jsonify({'error': GROUP_NOT_FOUND}), 404
+        return jsonify({'error': t('group_not_found')}), 404
     return jsonify(public_group_to_dict(group))
 
 
@@ -139,9 +138,9 @@ def get_group(code):
 def get_admin_group():
     group = find_admin_group()
     if not group:
-        return jsonify({'error': GROUP_NOT_FOUND}), 404
+        return jsonify({'error': t('group_not_found')}), 404
     if group.admin_link_expired:
-        return jsonify({'error': ADMIN_LINK_EXPIRED, 'expired': True}), 410
+        return jsonify({'error': t('admin_link_expired'), 'expired': True}), 410
     result = admin_group_to_dict(group)
     db.session.commit()  # eliberează blocarea
     return jsonify(result)
@@ -152,10 +151,10 @@ def get_admin_group():
 def draw_names():
     group = find_admin_group()
     if not group:
-        return jsonify({'error': GROUP_NOT_FOUND}), 404
+        return jsonify({'error': t('group_not_found')}), 404
     if group.is_drawn:
         db.session.rollback()
-        return jsonify({'error': 'Tragerea la sorți a fost deja efectuată!'}), 409
+        return jsonify({'error': t('already_drawn')}), 409
     try:
         SantaService.draw_names(group)
     except ValueError as e:
@@ -174,19 +173,19 @@ def draw_names():
 def resend_emails():
     group = find_admin_group()
     if not group:
-        return jsonify({'error': GROUP_NOT_FOUND}), 404
+        return jsonify({'error': t('group_not_found')}), 404
     if group.admin_link_expired:
-        return jsonify({'error': ADMIN_LINK_EXPIRED, 'expired': True}), 410
+        return jsonify({'error': t('admin_link_expired'), 'expired': True}), 410
     if not group.is_drawn:
         db.session.rollback()
-        return jsonify({'error': 'Tragerea la sorți nu a avut loc încă.'}), 400
+        return jsonify({'error': t('not_drawn_yet')}), 400
 
     # Organizatorul poate corecta parola dacă emailurile au eșuat din cauza ei.
     data = json_body()
     if data.get('retry_uncertain') not in (None, True, False):
-        raise ValidationError('Confirmarea retrimiterii trebuie să fie da sau nu.')
+        raise ValidationError('retry_flag_invalid')
     if data.get('smtp_password'):
-        group.smtp_password = encrypt_secret(clean_text(data['smtp_password'], 'smtp_password', 'Parola de email'))
+        group.smtp_password = encrypt_secret(clean_text(data['smtp_password'], 'smtp_password'))
 
     enqueue_assignments(group, retry_uncertain=data.get('retry_uncertain') is True)
     db.session.commit()
@@ -199,14 +198,14 @@ def resend_emails():
 def delete_participant(participant_id):
     group = find_admin_group()
     if not group:
-        return jsonify({'error': GROUP_NOT_FOUND}), 404
+        return jsonify({'error': t('group_not_found')}), 404
     if group.is_drawn:
         db.session.rollback()
-        return jsonify({'error': 'Nu poți scoate participanți după tragere.'}), 400
+        return jsonify({'error': t('cannot_remove_after_draw')}), 400
     participant = Participant.query.filter_by(id=participant_id, group_id=group.id).first()
     if not participant:
         db.session.rollback()
-        return jsonify({'error': 'Participantul nu a fost găsit.'}), 404
+        return jsonify({'error': t('participant_not_found')}), 404
     db.session.delete(participant)
     db.session.commit()
     db.session.refresh(group)
@@ -217,31 +216,31 @@ def delete_participant(participant_id):
 @limiter.limit('10 per minute; 60 per hour')
 def add_participant(code):
     data = json_body()
-    name = clean_text(data.get('name'), 'name', 'Numele')
+    name = clean_text(data.get('name'), 'name')
     email = clean_email(data.get('email'))
-    wishlist = clean_text(data.get('wishlist'), 'wishlist', 'Lista de dorințe', required=False, multiline=True)
+    wishlist = clean_text(data.get('wishlist'), 'wishlist', required=False, multiline=True)
 
     # Blocăm grupul ca o înscriere să nu se strecoare în timpul tragerii.
     group = SantaGroup.query.filter_by(code=code).with_for_update().first()
     if not group:
-        return jsonify({'error': GROUP_NOT_FOUND}), 404
+        return jsonify({'error': t('group_not_found')}), 404
     if group.is_drawn:
         db.session.rollback()
-        return jsonify({'error': 'Înscrierea s-a închis. Tragerile au fost efectuate!'}), 400
+        return jsonify({'error': t('registration_closed')}), 400
     if len(group.participants) >= MAX_PARTICIPANTS:
         db.session.rollback()
-        return jsonify({'error': f'Grupul are deja numărul maxim de {MAX_PARTICIPANTS} participanți.'}), 400
+        return jsonify({'error': t('group_full', max=MAX_PARTICIPANTS)}), 400
     if any(p.email == email for p in group.participants):
         db.session.rollback()
-        return jsonify({'error': 'Există deja un participant cu acest email!'}), 400
+        return jsonify({'error': t('duplicate_email')}), 400
 
-    p = Participant(group_id=group.id, name=name, email=email, wishlist=wishlist)
+    p = Participant(group_id=group.id, name=name, email=email, wishlist=wishlist, language=request_language())
     db.session.add(p)
     try:
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        return jsonify({'error': 'Există deja un participant cu acest email!'}), 400
+        return jsonify({'error': t('duplicate_email')}), 400
     return jsonify({
         'id': p.id, 'name': p.name, 'email': p.email,
         'wishlist': p.wishlist, 'joined_at': p.joined_at.isoformat(),
@@ -259,10 +258,11 @@ def get_stats():
     groups_with_email = SantaGroup.query.filter(SantaGroup.smtp_email.isnot(None)).count()
 
     budgets = [g.min_budget_ron for g in SantaGroup.query.all()]
-    budget_buckets = {'Fără buget': 0, '0-50': 0, '51-100': 0, '101-200': 0, '201-500': 0, '500+': 0}
+    # Cheia „none” e tradusă de frontend; intervalele se afișează ca atare.
+    budget_buckets = {'none': 0, '0-50': 0, '51-100': 0, '101-200': 0, '201-500': 0, '500+': 0}
     for b in budgets:
         if b is None:
-            budget_buckets['Fără buget'] += 1
+            budget_buckets['none'] += 1
         elif b <= 50:
             budget_buckets['0-50'] += 1
         elif b <= 100:
@@ -334,7 +334,7 @@ def health():
 @bp.route('/<path:path>')
 def serve_react(path):
     if path == 'api' or path.startswith('api/'):
-        return jsonify({'error': 'Ruta API nu există.'}), 404
+        return jsonify({'error': t('api_route_missing')}), 404
     if path and os.path.exists(os.path.join(FRONTEND_DIST, path)):
         return send_from_directory(FRONTEND_DIST, path)
     index_path = os.path.join(FRONTEND_DIST, 'index.html')

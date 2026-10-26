@@ -7,10 +7,11 @@ import FestiveButton from '../components/christmas/FestiveButton';
 import Character from '../components/christmas/Character';
 import EmailSetupHelp from '../components/EmailSetupHelp';
 import { useChristmasConfetti } from '../components/christmas/confettiContext';
+import { useI18n } from '../i18n/i18nContext';
 
 const PROVIDERS = [
-  { label: 'Gmail', value: 'gmail', hint: 'App Password din contul Google' },
-  { label: 'Yahoo', value: 'yahoo', hint: 'App Password din contul Yahoo' },
+  { label: 'Gmail', value: 'gmail' },
+  { label: 'Yahoo', value: 'yahoo' },
 ];
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -26,6 +27,7 @@ interface CreateForm {
 export default function Create() {
   const navigate = useNavigate();
   const { message } = App.useApp();
+  const { create: t } = useI18n().t;
   const fireConfetti = useChristmasConfetti();
   const [form] = Form.useForm<CreateForm>();
   const [loading, setLoading] = useState(false);
@@ -61,15 +63,15 @@ export default function Create() {
         smtp_password: v.smtp_provider ? v.smtp_password : undefined,
       });
       fireConfetti();
-      message.success('Grupul a fost creat! 🎉');
+      message.success(t.created);
       if (group.admin_email_sent) {
-        message.success(`📧 Ți-am trimis linkul de admin pe ${v.smtp_email}`, 6);
+        message.success(t.adminLinkSent(v.smtp_email ?? ''), 6);
       } else if (v.smtp_provider) {
-        message.warning('Nu am putut confirma trimiterea linkului de admin pe email. Copiază-l de pe pagina grupului!', 8);
+        message.warning(t.adminLinkNotSent, 8);
       }
       navigate(`/admin#${group.admin_code}`, { state: { justCreated: true } });
     } catch (err: any) {
-      message.error(err.response?.data?.error || 'Eroare la creare grup');
+      message.error(err.response?.data?.error || t.createError);
     } finally {
       setLoading(false);
     }
@@ -82,8 +84,8 @@ export default function Create() {
       <div style={{ maxWidth: 1000, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div style={{ fontSize: '3rem' }} className="xmas-float">🎄</div>
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '2.2rem', marginTop: 12, color: '#2c3e50' }}>Grup nou</h1>
-          <p style={{ color: '#7f8c8d' }}>Configurează schimbul tău de cadouri. Bun venit în Atelierul lui Moș Crăciun!</p>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '2.2rem', marginTop: 12, color: '#2c3e50' }}>{t.title}</h1>
+          <p style={{ color: '#7f8c8d' }}>{t.subtitle}</p>
         </div>
 
         <Row gutter={[32, 24]} align="top">
@@ -101,12 +103,12 @@ export default function Create() {
                 </div>
               </div>
               <div aria-live="polite" style={{ fontWeight: 700, color: nameValid && emailReady ? '#1E8449' : '#7f8c8d', margin: '12px 0 8px' }}>
-                {nameValid && emailReady ? '🎉 Cadoul e gata de pornire!' : nameValid ? 'Mai adaugă emailul de pe care pleacă perechile.' : 'Scrie un nume ca să apară cutia.'}
+                {nameValid && emailReady ? t.giftReady : nameValid ? t.giftNeedsEmail : t.giftNeedsName}
               </div>
               <ul className="xmas-gift-panel__steps" style={{ listStyle: 'none', textAlign: 'left', display: 'grid', gap: 6, fontSize: '0.88rem', color: '#5d6d7e' }}>
-                <li>{nameValid ? '✅' : '○'} Cutia: numele grupului <strong>(obligatoriu)</strong></li>
-                <li>{budgetValid ? '✅' : '○'} Panglica: bugetul (opțional)</li>
-                <li>{emailReady ? '✅' : '○'} Steluțele: emailul de pe care pleacă perechile <strong>(obligatoriu)</strong></li>
+                <li>{nameValid ? '✅' : '○'} {t.stepBox} <strong>{t.required}</strong></li>
+                <li>{budgetValid ? '✅' : '○'} {t.stepRibbon}</li>
+                <li>{emailReady ? '✅' : '○'} {t.stepSparkles} <strong>{t.required}</strong></li>
               </ul>
             </Card>
           </Col>
@@ -117,71 +119,71 @@ export default function Create() {
               <Form form={form} layout="vertical" onFinish={handleFinish} requiredMark={false} size="large" validateTrigger={['onChange', 'onBlur']}>
                 <Form.Item
                   name="name"
-                  label={<span style={labelStyle}>🎄 Numele grupului *</span>}
+                  label={<span style={labelStyle}>{t.nameLabel}</span>}
                   hasFeedback
                   rules={[
-                    { required: true, whitespace: true, message: 'Completează numele grupului!' },
-                    { max: 100, message: 'Numele poate avea maxim 100 de caractere.' },
+                    { required: true, whitespace: true, message: t.nameRequired },
+                    { max: 100, message: t.nameMax },
                   ]}
                 >
-                  <Input placeholder="ex: Secret Santa 2024 la birou" maxLength={100} />
+                  <Input placeholder={t.namePlaceholder} maxLength={100} />
                 </Form.Item>
 
                 <Form.Item
                   name="budget"
-                  label={<span style={labelStyle}>💰 Buget minim (RON) <span style={{ fontWeight: 400, color: '#95a5a6' }}>(opțional)</span></span>}
+                  label={<span style={labelStyle}>{t.budgetLabel} <span style={{ fontWeight: 400, color: '#95a5a6' }}>{t.optional}</span></span>}
                   hasFeedback={budgetValid}
-                  extra="Lasă gol dacă nu vreți un buget. Dacă îl setezi, toți participanții îl vor vedea."
-                  rules={[{ type: 'number', min: 1, max: 100000, message: 'Bugetul trebuie să fie între 1 și 100.000 RON.' }]}
+                  extra={t.budgetExtra}
+                  rules={[{ type: 'number', min: 1, max: 100000, message: t.budgetRange }]}
                 >
-                  <InputNumber placeholder="ex: 100" min={1} max={100000} step={10} suffix="RON" style={{ width: '100%' }} />
+                  <InputNumber placeholder={t.budgetPlaceholder} min={1} max={100000} step={10} suffix="RON" style={{ width: '100%' }} />
                 </Form.Item>
 
                 <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: 24 }}>
-                  <h2 style={{ color: '#2c3e50', fontWeight: 700, fontSize: '1rem', marginBottom: 4 }}>📧 Contul de email de pe care pleacă perechile *</h2>
+                  <h2 style={{ color: '#2c3e50', fontWeight: 700, fontSize: '1rem', marginBottom: 4 }}>{t.emailHeading}</h2>
                   <p style={{ color: '#7f8c8d', fontSize: '0.85rem', marginBottom: 16 }}>
-                    După tragere, fiecare participant primește de aici un email cu persoana căreia îi face cadou. Nici tu nu vezi perechile, așa că fără email nimeni nu le-ar afla.
+                    {t.emailIntro}
                   </p>
 
                   <Form.Item
                     name="smtp_provider"
-                    label={<span style={labelStyle}>Provider email *</span>}
-                    rules={[{ required: true, message: 'Alege Gmail sau Yahoo: de pe acest cont pleacă perechile.' }]}
+                    label={<span style={labelStyle}>{t.providerLabel}</span>}
+                    rules={[{ required: true, message: t.providerRequired }]}
                   >
                     <Select
                       loading={!emailConfig && !configError}
-                      placeholder="Alege Gmail sau Yahoo"
+                      placeholder={t.providerPlaceholder}
                       options={PROVIDERS.map(p => ({ label: p.label, value: p.value, disabled: emailConfig?.unavailable_providers.includes(p.value) }))}
                       onChange={() => form.setFieldsValue({ smtp_password: undefined })}
                     />
                   </Form.Item>
 
-                  {configError && <Alert type="warning" showIcon title="Nu am putut verifica serverul de email. Poți alege providerul în continuare; dacă serverul nu răspunde, grupul nu se va putea crea." style={{ marginBottom: 16 }} />}
-                  {Boolean(emailConfig?.unavailable_providers.length) && <Alert type="info" showIcon title="Serverul pe care rulează aplicația blochează unii provideri de email; aceștia apar dezactivați în listă." style={{ marginBottom: 16 }} />}
+                  {configError && <Alert type="warning" showIcon title={t.configError} style={{ marginBottom: 16 }} />}
+                  {Boolean(emailConfig?.unavailable_providers.length) && <Alert type="info" showIcon title={t.providersBlocked} style={{ marginBottom: 16 }} />}
 
                   {values.smtp_provider && <EmailSetupHelp key={values.smtp_provider} provider={values.smtp_provider} />}
 
                   {showEmailFields && (
                     <>
-                      {provider && <Alert type="info" showIcon title={provider.hint} style={{ marginBottom: 16 }} />}
+                      {provider && <Alert type="info" showIcon title={t.providerHints[provider.value]} style={{ marginBottom: 16 }} />}
                       <Form.Item
                         name="smtp_email"
-                        label={<span style={labelStyle}>Adresa de email *</span>}
+                        label={<span style={labelStyle}>{t.addressLabel}</span>}
                         hasFeedback
                         rules={[
-                          { required: true, message: 'Completează adresa de email.' },
-                          { type: 'email', message: 'Adresa de email nu este validă.' },
+                          { required: true, message: t.addressRequired },
+                          { type: 'email', message: t.addressInvalid },
                         ]}
                       >
                         <Input type="email" placeholder="exemplu@email.com" autoComplete="email" />
                       </Form.Item>
                       <Form.Item
                         name="smtp_password"
-                        label={<span style={labelStyle}>Parola de aplicație (App Password) *</span>}
-                        extra="Folosește parola dedicată aplicației, nu codul temporar de verificare. Vezi pașii de mai sus."
-                        rules={[{ required: true, message: 'Completează parola sau App Password-ul.' }]}
+                        label={<span style={labelStyle}>{t.passwordLabel}</span>}
+                        extra={t.passwordExtra}
+                        rules={[{ required: true, message: t.passwordRequired }]}
                       >
-                        <Input.Password placeholder="codul de 16 caractere" autoComplete="new-password" />
+                        <Input.Password placeholder={t.passwordPlaceholder} autoComplete="new-password" />
                       </Form.Item>
 
                     </>
@@ -189,7 +191,7 @@ export default function Create() {
                 </div>
 
                 <FestiveButton htmlType="submit" tone="red" block loading={loading} disabled={unsupportedProvider} gift={loading ? undefined : <Character role="santa" />} style={{ marginTop: 8 }}>
-                  {loading ? 'Pregătim lista pentru Moș Crăciun...' : 'Creează grupul!'}
+                  {loading ? t.submitting : t.submit}
                 </FestiveButton>
               </Form>
             </Card>

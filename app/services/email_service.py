@@ -4,6 +4,7 @@ from html import escape
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+from ..i18n import t
 from ..security import check_smtp_target, decrypt_secret, is_loopback_host, ValidationError
 
 SMTP_TIMEOUT_SECONDS = 15
@@ -54,71 +55,76 @@ class EmailService:
         giver_name = escape(giver.name)
         receiver_name = escape(receiver.name)
         receiver_email = escape(receiver.email)
-        wishlist = escape(receiver.wishlist) if receiver.wishlist else "Nicio dorinta specificata - surprinde-l! &#128522;"
+        # Fiecare primește emailul în limba în care s-a înscris.
+        lang = giver.language or group.language
+        wishlist = escape(receiver.wishlist) if receiver.wishlist else t('mail.no_wishlist', lang)
         budget_html = f"""
               <div style="background:#EBF5FB;border-radius:12px;padding:16px;text-align:center;">
-                <p style="color:#2980B9;margin:0;font-size:14px;">&#128176; <strong>Buget minim:</strong> {group.min_budget_ron:.0f} RON</p>
+                <p style="color:#2980B9;margin:0;font-size:14px;">&#128176; <strong>{t('mail.budget', lang)}</strong> {group.min_budget_ron:.0f} RON</p>
               </div>""" if group.min_budget_ron else ""
+        # Fiecare gradient are o culoare simplă înainte: Yahoo ignoră gradientele,
+        # iar fără ea textul alb ar rămâne pe fundal alb.
         html = f"""
         <!DOCTYPE html>
-        <html>
+        <html lang="{lang or 'en'}">
         <head><meta charset="utf-8"></head>
         <body style="margin:0;padding:0;background:#1a472a;font-family:Arial,sans-serif;">
           <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
-            <div style="background:linear-gradient(135deg,#C0392B,#922B21);padding:40px;text-align:center;">
+            <div style="background-color:#C0392B;background-image:linear-gradient(135deg,#C0392B,#922B21);padding:40px;text-align:center;">
               <div style="font-size:64px;">&#127877;&#127995;</div>
               <h1 style="color:#fff;margin:16px 0 8px;font-size:28px;font-weight:bold;">Secret Santa</h1>
               <p style="color:#FADBD8;margin:0;font-size:16px;">{group_name}</p>
             </div>
             <div style="padding:40px;">
-              <h2 style="color:#2C3E50;margin:0 0 8px;">Buna, {giver_name}! &#127876;</h2>
-              <p style="color:#7F8C8D;margin:0 0 24px;font-size:15px;">A venit momentul sa afli cui ii faci cadou...</p>
-              <div style="background:linear-gradient(135deg,#27AE60,#1E8449);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
-                <p style="color:rgba(255,255,255,0.8);margin:0 0 8px;font-size:14px;text-transform:uppercase;letter-spacing:2px;">Tu esti Secret Santa pentru</p>
+              <h2 style="color:#2C3E50;margin:0 0 8px;">{t('mail.hello', lang, name=giver_name)}</h2>
+              <p style="color:#7F8C8D;margin:0 0 24px;font-size:15px;">{t('mail.intro', lang)}</p>
+              <div style="background-color:#27AE60;background-image:linear-gradient(135deg,#27AE60,#1E8449);border-radius:12px;padding:24px;text-align:center;margin-bottom:24px;">
+                <p style="color:#E8F8EF;margin:0 0 8px;font-size:14px;text-transform:uppercase;letter-spacing:2px;">{t('mail.you_are_santa', lang)}</p>
                 <h2 style="color:#fff;margin:0;font-size:32px;font-weight:bold;">&#127873; {receiver_name}</h2>
-                <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;">{receiver_email}</p>
+                <p style="color:#E8F8EF;margin:8px 0 0;font-size:14px;">{receiver_email}</p>
               </div>
               <div style="background:#FFF8F0;border-radius:12px;padding:24px;margin-bottom:24px;border-left:4px solid #F39C12;">
-                <h3 style="color:#2C3E50;margin:0 0 12px;font-size:16px;">&#128221; Lista de dorinte:</h3>
+                <h3 style="color:#2C3E50;margin:0 0 12px;font-size:16px;">&#128221; {t('mail.wishlist', lang)}</h3>
                 <p style="color:#5D6D7E;margin:0;line-height:1.6;white-space:pre-wrap;">{wishlist}</p>
               </div>
               {budget_html}
             </div>
             <div style="background:#F2F3F4;padding:20px;text-align:center;">
-              <p style="color:#95A5A6;margin:0;font-size:13px;">&#129323; Pastreaza secretul! Craciun fericit! &#127877;&#127995;</p>
+              <p style="color:#95A5A6;margin:0;font-size:13px;">&#129323; {t('mail.keep_secret', lang)} &#127877;&#127995;</p>
             </div>
           </div>
         </body>
         </html>
         """
 
-        return _send(group, giver.email, f"Secret Santa {group.name}", html)
+        return _send(group, giver.email, t('mail.assignment_subject', lang, group=group.name), html)
 
     @staticmethod
     def send_admin_link(group, admin_url) -> bool:
         group_name = escape(group.name)
         admin_url = escape(admin_url, quote=True)
+        lang = group.language
         html = f"""
         <!DOCTYPE html>
-        <html>
+        <html lang="{lang or 'en'}">
         <head><meta charset="utf-8"></head>
         <body style="margin:0;padding:0;background:#FFF8F0;font-family:Arial,sans-serif;">
           <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.1);">
-            <div style="background:linear-gradient(135deg,#C0392B,#922B21);padding:32px;text-align:center;">
+            <div style="background-color:#C0392B;background-image:linear-gradient(135deg,#C0392B,#922B21);padding:32px;text-align:center;">
               <div style="font-size:48px;">&#127877;&#127995;</div>
-              <h1 style="color:#fff;margin:12px 0 4px;font-size:24px;">Grupul tău e gata!</h1>
+              <h1 style="color:#fff;margin:12px 0 4px;font-size:24px;">{t('mail.admin_title', lang)}</h1>
               <p style="color:#FADBD8;margin:0;font-size:16px;">{group_name}</p>
             </div>
             <div style="padding:32px;">
               <p style="color:#2C3E50;font-size:15px;line-height:1.6;margin:0 0 20px;">
-                Acesta e <strong>linkul tău secret de admin</strong>. De aici vezi cine s-a înscris și tragi la sorți.
+                {t('mail.admin_intro', lang)}
               </p>
               <p style="text-align:center;margin:0 0 24px;">
-                <a href="{admin_url}" style="display:inline-block;background:#27AE60;color:#fff;text-decoration:none;font-weight:bold;padding:14px 28px;border-radius:50px;">Deschide pagina de admin</a>
+                <a href="{admin_url}" style="display:inline-block;background:#27AE60;color:#fff;text-decoration:none;font-weight:bold;padding:14px 28px;border-radius:50px;">{t('mail.admin_button', lang)}</a>
               </p>
               <div style="background:#FFF3CD;border-radius:12px;padding:16px;color:#856404;font-size:14px;line-height:1.5;">
-                &#128274; Nu trimite acest email nimănui: oricine are linkul poate trage la sorți.<br>
-                &#8987; Linkul expiră după tragerea la sorți, când toți și-au primit emailul.
+                &#128274; {t('mail.admin_warning', lang)}<br>
+                &#8987; {t('mail.admin_expiry', lang)}
               </div>
             </div>
           </div>
@@ -126,7 +132,7 @@ class EmailService:
         </html>
         """
         try:
-            return _send(group, group.smtp_email, f"Linkul de admin pentru {group.name}", html)
+            return _send(group, group.smtp_email, t('mail.admin_subject', lang, group=group.name), html)
         except DeliveryUncertain:
             # Grupul este deja creat. O confirmare SMTP pierdută nu trebuie să dea 500.
             return False

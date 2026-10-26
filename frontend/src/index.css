@@ -9,9 +9,14 @@ body {
   line-height: 1.6;
 }
 
+@media (max-width: 600px) {
+  .nav-link__text { display: none; }
+  .nav-link { font-size: 1.1rem !important; }
+}
+
 @media (max-width: 480px) {
   .xmas-nav { padding: 0 12px !important; }
   .nav-logo { font-size: 1.05rem !important; letter-spacing: 0 !important; }
-  .nav-link { padding: 8px 6px !important; font-size: 0.82rem !important; }
+  .nav-link { padding: 8px 6px !important; }
   .xmas-theme-toggle { width: 32px; height: 32px; margin-left: 2px; font-size: 1rem; }
 }

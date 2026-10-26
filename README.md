@@ -16,6 +16,7 @@ Emailurile pleacă direct din contul de **Gmail sau Yahoo** al organizatorului, 
 - 📬 **Emailuri sigure:** se trimit în fundal, dintr-o coadă salvată în baza de date. Dacă serverul se oprește, trimiterea continuă de unde a rămas, fără dubluri.
 - ⏳ **Link de admin care expiră** după ce toți și-au primit emailul.
 - 🎄 **Două teme:** clasică (Moș Crăciun, globuri) și 🐱 cu pisici (pisici îmbrăcate în Moș și spiriduși, gheme de lână).
+- 🌍 **Cinci limbi:** engleză (implicit), română, franceză, turcă și italiană. Fiecare participant primește emailul în limba în care s-a înscris.
 - 📊 **Statistici** generale, fără date personale.
 - 📱 **Pe telefon:** interfață în română, care se adaptează la ecran și ține cont de setarea „mai puține animații”.
 

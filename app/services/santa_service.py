@@ -1,5 +1,6 @@
 import secrets
 from ..models import db
+from ..security import ValidationError
 
 _rng = secrets.SystemRandom()
 
@@ -9,10 +10,10 @@ class SantaService:
     def draw_names(group) -> list[tuple]:
         """Trage la sorți pentru un grup deja blocat cu SELECT ... FOR UPDATE."""
         if group.is_drawn:
-            raise ValueError("Tragerile de sorți au fost deja efectuate!")
+            raise ValidationError('already_drawn')
         participants = list(group.participants)
         if len(participants) < 2:
-            raise ValueError("Sunt necesari cel puțin 2 participanți pentru a trage la sorți!")
+            raise ValidationError('min_participants')
 
         # Amestecăm până nimeni nu se nimerește pe sine. Orice tragere validă are
         # aceeași șansă (nu doar cele care formează un singur cerc).

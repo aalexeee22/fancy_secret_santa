@@ -10,8 +10,9 @@ import { FestiveLink } from '../components/christmas/FestiveButton';
 import RevealOnScroll from '../components/christmas/RevealOnScroll';
 import SnowGlobe from '../components/christmas/SnowGlobe';
 import Character from '../components/christmas/Character';
+import { useI18n } from '../i18n/i18nContext';
 
-const BUDGET_ORDER = ['Fără buget', '0-50', '51-100', '101-200', '201-500', '500+'];
+const BUDGET_ORDER = ['none', '0-50', '51-100', '101-200', '201-500', '500+'];
 const SIZE_ORDER = ['1', '2-5', '6-10', '11-20', '20+'];
 
 const TREE_DOTS = [
@@ -61,49 +62,51 @@ const SledScene = () => (
 export default function StatsPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const { t: messages, locale } = useI18n();
+  const t = messages.stats;
 
   useEffect(() => {
     getStats().then(setStats).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '100px' }}><Spin size="large" description="Numărăm cadourile..."><div style={{ height: 60 }} /></Spin></div>;
-  if (!stats) return <Result status="error" title="Nu s-au putut încărca statisticile." subTitle="Spiridușii nu au găsit registrul. Încearcă din nou mai târziu." />;
+  if (loading) return <div style={{ textAlign: 'center', padding: '100px' }}><Spin size="large" description={t.loading}><div style={{ height: 60 }} /></Spin></div>;
+  if (!stats) return <Result status="error" title={t.loadError} subTitle={t.loadErrorText} />;
 
   const noGroups = stats.total_groups === 0;
-  const createCta = <FestiveLink to="/create" tone="red" small gift="🎄">Grup nou</FestiveLink>;
+  const createCta = <FestiveLink to="/create" tone="red" small gift="🎄">{t.newGroup}</FestiveLink>;
 
   return (
     <div style={{ minHeight: '90vh', padding: '40px 20px' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <SnowGlobe />
-          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2rem, 5vw, 2.5rem)', color: '#2c3e50', marginTop: 12 }}>📊 Statistici Secret Santa</h1>
-          <p style={{ color: '#7f8c8d' }}>O privire globală asupra tuturor grupurilor, direct din Fabrica de Cadouri</p>
+          <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2rem, 5vw, 2.5rem)', color: '#2c3e50', marginTop: 12 }}>{t.title}</h1>
+          <p style={{ color: '#7f8c8d' }}>{t.subtitle}</p>
         </div>
 
         {/* KPI Cards */}
         <Row gutter={[20, 20]} style={{ marginBottom: 40 }}>
           <Col xs={24} sm={12} lg={{ flex: '20%' }}>
-            <StatCard scene={<TreeScene />} label="Grupuri create" value={stats.total_groups} color="#C0392B" delay={0} />
+            <StatCard scene={<TreeScene />} label={t.groups} value={stats.total_groups} color="#C0392B" delay={0} />
           </Col>
           <Col xs={24} sm={12} lg={{ flex: '20%' }}>
-            <StatCard scene={<ElvesScene />} label="Participanți totali" value={stats.total_participants} color="#27AE60" delay={90} />
+            <StatCard scene={<ElvesScene />} label={t.participants} value={stats.total_participants} color="#27AE60" delay={90} />
           </Col>
           <Col xs={24} sm={12} lg={{ flex: '20%' }}>
             <StatCard
               scene={visible => <GiftScene open={visible && stats.drawn_groups > 0} />}
-              label="Trageri efectuate"
+              label={t.draws}
               value={stats.drawn_groups}
               color="#F39C12"
-              sub={`${stats.pending_groups} în așteptare`}
+              sub={t.pending(stats.pending_groups)}
               delay={180}
             />
           </Col>
           <Col xs={24} sm={12} lg={{ flex: '20%' }}>
-            <StatCard scene={<EnvelopeScene />} label="Cu email auto" value={stats.groups_with_email} color="#3498DB" delay={270} />
+            <StatCard scene={<EnvelopeScene />} label={t.withEmail} value={stats.groups_with_email} color="#3498DB" delay={270} />
           </Col>
           <Col xs={24} sm={24} lg={{ flex: '20%' }}>
-            <StatCard scene={<SledScene />} label="Medie participanți" value={stats.avg_participants_per_group} decimals={1} color="#9B59B6" sub="per grup" delay={360} />
+            <StatCard scene={<SledScene />} label={t.average} value={stats.avg_participants_per_group} decimals={1} color="#9B59B6" sub={t.perGroup} delay={360} />
           </Col>
         </Row>
 
@@ -113,13 +116,14 @@ export default function StatsPage() {
             <BarChart
               data={stats.budget_distribution}
               order={BUDGET_ORDER}
-              title="📊 Distribuție bugete (RON)"
+              labels={{ none: t.noBudget }}
+              title={t.budgetChart}
               color="#F39C12"
               empty={
                 <ChristmasEmptyState
                   prop="🛷"
-                  title="Sania e încă goală!"
-                  description="Creează primul grup și aici vor apărea statisticile cadourilor."
+                  title={t.budgetEmptyTitle}
+                  description={t.budgetEmptyText}
                   action={createCta}
                 />
               }
@@ -129,14 +133,14 @@ export default function StatsPage() {
             <BarChart
               data={stats.group_size_distribution}
               order={SIZE_ORDER}
-              title="👥 Distribuție mărime grup"
+              title={t.sizeChart}
               color="#27AE60"
               empty={
                 <ChristmasEmptyState
                   sleeping
                   prop="🎒"
-                  title="Spiridușii așteaptă prima lor misiune!"
-                  description="Când apare primul grup, îi trezim și numărăm cine vine la petrecere."
+                  title={t.sizeEmptyTitle}
+                  description={t.sizeEmptyText}
                   action={createCta}
                 />
               }
@@ -147,9 +151,9 @@ export default function StatsPage() {
         {/* Recent groups */}
         <RevealOnScroll>
           <Card style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }} styles={{ body: { padding: 28 } }}>
-            <h2 style={{ fontFamily: 'Georgia, serif', marginBottom: 20, color: '#2c3e50', fontSize: '1.1rem' }}>🕐 Grupuri recente</h2>
+            <h2 style={{ fontFamily: 'Georgia, serif', marginBottom: 20, color: '#2c3e50', fontSize: '1.1rem' }}>{t.recent}</h2>
             {noGroups || stats.recent_groups.length === 0 ? (
-              <ChristmasEmptyState prop="📜" title="Niciun grup creat încă." description="Lista lui Moș Crăciun așteaptă primul nume." />
+              <ChristmasEmptyState prop="📜" title={t.recentEmptyTitle} description={t.recentEmptyText} />
             ) : (
               <div>
                 {stats.recent_groups.map((g, i) => (
@@ -167,9 +171,9 @@ export default function StatsPage() {
                       {g.is_drawn ? '🎁' : '🎄'}
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, color: '#2c3e50' }}>{g.participant_count} participanți</div>
+                      <div style={{ fontWeight: 600, color: '#2c3e50' }}>{t.recentParticipants(g.participant_count)}</div>
                       <div style={{ fontSize: '0.82rem', color: '#7f8c8d' }}>
-                        Creat pe {new Date(g.created_at).toLocaleDateString('ro-RO')}
+                        {t.createdOn(new Date(g.created_at).toLocaleDateString(locale))}
                       </div>
                     </div>
                     <span style={{
@@ -180,7 +184,7 @@ export default function StatsPage() {
                       background: g.is_drawn ? '#d5f5e3' : '#fdebd0',
                       color: g.is_drawn ? '#1E8449' : '#E67E22',
                     }}>
-                      {g.is_drawn ? '✓ Tras' : '⏳ În așteptare'}
+                      {g.is_drawn ? t.drawn : t.waiting}
                     </span>
                   </div>
                 ))}

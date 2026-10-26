@@ -5,6 +5,7 @@ import { getGroup, addParticipant } from '../api/client';
 import type { PublicGroup } from '../types';
 import FestiveButton from '../components/christmas/FestiveButton';
 import Character from '../components/christmas/Character';
+import { useI18n } from '../i18n/i18nContext';
 
 interface JoinForm {
   name: string;
@@ -16,6 +17,9 @@ export default function Join() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const { message } = App.useApp();
+  const { t: messages } = useI18n();
+  const t = messages.join;
+  const notFound = messages.common.groupNotFound;
   const [group, setGroup] = useState<PublicGroup | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -24,9 +28,9 @@ export default function Join() {
     if (!code) return;
     getGroup(code)
       .then(setGroup)
-      .catch(() => message.error('Grupul nu a fost găsit!'))
+      .catch(() => message.error(notFound))
       .finally(() => setLoading(false));
-  }, [code, message]);
+  }, [code, message, notFound]);
 
   const handleFinish = async (values: JoinForm) => {
     if (!code) return;
@@ -35,7 +39,7 @@ export default function Join() {
       const result = await addParticipant(code, { name: values.name.trim(), email: values.email.trim(), wishlist: values.wishlist?.trim() });
       navigate(`/join/${code}/success`, { state: { name: result.name, groupName: result.group_name, budget: result.min_budget_ron, count: result.participant_count } });
     } catch (err: any) {
-      message.error(err.response?.data?.error || 'Eroare la înregistrare');
+      message.error(err.response?.data?.error || t.joinError);
     } finally {
       setSubmitting(false);
     }
@@ -44,7 +48,7 @@ export default function Join() {
   const labelStyle = { fontWeight: 600, color: '#2c3e50' };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '100px' }}><Spin size="large" /></div>;
-  if (!group) return <Result status="warning" title="Grupul nu a fost găsit." subTitle="Verifică linkul primit de la organizator." />;
+  if (!group) return <Result status="warning" title={notFound} subTitle={t.notFoundText} />;
 
   return (
     <div style={{ minHeight: '90vh', padding: '40px 20px', display: 'flex', justifyContent: 'center' }}>
@@ -54,18 +58,18 @@ export default function Join() {
           <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '2rem', color: '#2c3e50', marginTop: 12 }}>{group.name}</h1>
           {group.min_budget_ron != null && (
             <div style={{ marginTop: 12 }}>
-              <span className="xmas-budget-pill">💰 Buget minim: {Math.round(group.min_budget_ron)} RON</span>
+              <span className="xmas-budget-pill">💰 {messages.common.budgetMin(Math.round(group.min_budget_ron))}</span>
             </div>
           )}
-          {!group.is_drawn && <p style={{ color: '#7f8c8d', marginTop: 12 }}>Alătură-te Secret Santa-ului! 🎄</p>}
+          {!group.is_drawn && <p style={{ color: '#7f8c8d', marginTop: 12 }}>{t.joinIntro}</p>}
         </div>
 
         {group.is_drawn ? (
           <Card style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}>
             <Result
               icon={<span style={{ fontSize: '3rem' }} aria-hidden="true">🔒</span>}
-              title={<span style={{ fontFamily: 'Georgia, serif' }}>Înscrierea s-a închis</span>}
-              subTitle="Tragerile au fost deja efectuate. Data viitoare!"
+              title={<span style={{ fontFamily: 'Georgia, serif' }}>{t.closedTitle}</span>}
+              subTitle={t.closedText}
             />
           </Card>
         ) : (
@@ -74,39 +78,39 @@ export default function Join() {
             <Form layout="vertical" onFinish={handleFinish} requiredMark={false} size="large">
               <Form.Item
                 name="name"
-                label={<span style={labelStyle}>👤 Numele tău *</span>}
+                label={<span style={labelStyle}>{t.nameLabel}</span>}
                 rules={[
-                  { required: true, whitespace: true, message: 'Completează-ți numele!' },
-                  { max: 100, message: 'Numele poate avea maxim 100 de caractere.' },
+                  { required: true, whitespace: true, message: t.nameRequired },
+                  { max: 100, message: t.nameMax },
                 ]}
               >
-                <Input placeholder="Prenume și Nume" maxLength={100} autoComplete="name" />
+                <Input placeholder={t.namePlaceholder} maxLength={100} autoComplete="name" />
               </Form.Item>
               <Form.Item
                 name="email"
-                label={<span style={labelStyle}>📧 Email *</span>}
-                extra="Vei primi pe email cui îți este repartizat să îi faci cadou."
+                label={<span style={labelStyle}>{t.emailLabel}</span>}
+                extra={t.emailExtra}
                 rules={[
-                  { required: true, message: 'Completează emailul!' },
-                  { type: 'email', message: 'Adresa de email nu este validă.' },
+                  { required: true, message: t.emailRequired },
+                  { type: 'email', message: t.emailInvalid },
                 ]}
               >
                 <Input type="email" placeholder="email@exemplu.com" autoComplete="email" />
               </Form.Item>
               <Form.Item
                 name="wishlist"
-                label={<span style={labelStyle}>📝 Lista de dorințe</span>}
-                extra="Opțional, dar ajută mult Secret Santa-ul tău! 😊"
-                rules={[{ max: 2000, message: 'Lista poate avea maxim 2000 de caractere.' }]}
+                label={<span style={labelStyle}>{t.wishlistLabel}</span>}
+                extra={t.wishlistExtra}
+                rules={[{ max: 2000, message: t.wishlistMax }]}
               >
                 <Input.TextArea
                   autoSize={{ minRows: 4, maxRows: 10 }}
                   maxLength={2000}
-                  placeholder={'Ce ți-ar plăcea să primești de Crăciun? 🎄\nex: o carte bună, căști wireless, o lumânare parfumată...'}
+                  placeholder={t.wishlistPlaceholder}
                 />
               </Form.Item>
               <FestiveButton htmlType="submit" tone="red" block loading={submitting} gift={submitting ? undefined : <Character role="santa" />}>
-                {submitting ? 'Se înregistrează...' : 'Mă înscriu!'}
+                {submitting ? t.submitting : t.submit}
               </FestiveButton>
             </Form>
           </Card>
