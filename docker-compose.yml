@@ -18,6 +18,8 @@ services:
 
   web:
     build: .
+    # Nume fix: pe un server fără cod, compose folosește imaginea încărcată cu docker load.
+    image: secret-santa-web:latest
     ports:
       - "8000:8000"
     environment:
