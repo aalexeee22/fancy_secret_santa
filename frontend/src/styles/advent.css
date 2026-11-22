@@ -1,0 +1,492 @@
+/* Calendarul de advent: ușițe din imagini, animația de deschidere și butoanele de Crăciun. */
+
+.advent-page {
+  padding: 32px 16px 56px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.advent-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.advent-header h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  color: #2c3e50;
+  margin: 0 0 6px;
+}
+.advent-header p {
+  color: #7f8c8d;
+  margin: 0;
+}
+.advent-countdown,
+.advent-hint {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.advent-countdown {
+  background: #fff3cd;
+  color: #7a5a00;
+}
+.advent-hint {
+  background: #e8f8ef;
+  color: #1e8449;
+}
+
+/* --- Grila --- */
+.advent-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(10px, 2.2vw, 28px);
+}
+@media (max-width: 900px) {
+  .advent-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .advent-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* --- Ușița --- */
+.advent-door {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  perspective: 900px;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Proporția 2:3 a imaginilor. aspect-ratio nu se aplică de încredere pe <button>,
+   așa că înălțimea vine dintr-un pseudo-element: padding-ul în procente e relativ la lățime. */
+.advent-door::before {
+  content: '';
+  display: block;
+  padding-top: 150%;
+}
+.advent-door:hover { transform: translateY(-3px); }
+.advent-door:focus-visible {
+  outline: 3px solid #f1c40f;
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+.advent-door img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+
+/* Posterul stă în golul transparent al ușii deschise (măsurat pe door-open.webp). */
+.advent-door__inside {
+  position: absolute;
+  top: 18.5%;
+  right: 18.8%;
+  bottom: 12.5%;
+  left: 19.8%;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, #3b1f0e, #120803);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.advent-door__inside img {
+  position: static;
+  object-fit: cover;
+}
+.advent-door__placeholder { font-size: clamp(1.4rem, 4vw, 2.4rem); }
+
+.advent-door__leaf {
+  position: absolute;
+  inset: 0;
+  transform-origin: 9% 50%; /* balamalele ușii închise */
+  backface-visibility: hidden;
+}
+
+.advent-door__number {
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 2.1em;
+  padding: 0.15em 0.45em;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffe58a, #d4a017);
+  color: #5a3d00;
+  font-family: Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(0.85rem, 2.6vw, 1.35rem);
+  line-height: 1.3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* Ziua de azi: strălucește și se leagănă ușor, ca să atragă click-ul. */
+.advent-door--today {
+  filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.85));
+  animation: advent-glow 1.8s ease-in-out infinite;
+}
+.advent-door--today:hover .advent-door__leaf { animation: advent-wiggle 0.5s ease; }
+
+/* Zilele viitoare: ușa mai stinsă și lacătul peste ea. */
+.advent-door--locked { cursor: not-allowed; }
+.advent-door--locked .advent-door__leaf img { filter: saturate(0.55) brightness(0.8); }
+.advent-door--locked:hover { transform: none; }
+.advent-door__padlock {
+  inset: auto !important;
+  top: 44% !important;
+  left: 50% !important;
+  width: 46% !important;
+  height: auto !important;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+}
+.advent-door--shake { animation: advent-shake 0.5s ease; }
+
+/* Deschiderea: ușa se rotește pe balamale și se estompează, rama deschisă apare dedesubt. */
+.advent-door--opening .advent-door__leaf {
+  animation: advent-leaf-open 0.9s cubic-bezier(0.4, 0.1, 0.3, 1) forwards;
+}
+.advent-door--opening .advent-door__frame,
+.advent-door--opening .advent-door__inside {
+  animation: advent-fade-in 0.6s ease 0.25s both;
+}
+.advent-door--opening .advent-door__inside img { animation: advent-poster-pop 0.7s ease 0.35s both; }
+
+/* Ușița 25 și ușița bonus: mai festive. */
+.advent-door--christmas.advent-door--today,
+.advent-door--bonus.advent-door--today {
+  filter: drop-shadow(0 0 16px rgba(255, 80, 80, 0.9));
+}
+.advent-door--bonus { animation: advent-appear 0.8s cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+.advent-door__ribbon {
+  position: absolute;
+  top: 6%;
+  right: -4%;
+  padding: 2px 10px;
+  border-radius: 6px;
+  background: #c0392b;
+  color: #fff;
+  font-weight: 800;
+  font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+  transform: rotate(12deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes advent-glow {
+  50% { filter: drop-shadow(0 0 18px rgba(255, 215, 0, 1)); }
+}
+@keyframes advent-wiggle {
+  25% { transform: rotate(-2deg); }
+  75% { transform: rotate(2deg); }
+}
+@keyframes advent-shake {
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+@keyframes advent-leaf-open {
+  0% { transform: rotateY(0); opacity: 1; }
+  65% { opacity: 1; }
+  100% { transform: rotateY(-105deg); opacity: 0; }
+}
+@keyframes advent-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes advent-poster-pop {
+  from { transform: scale(0.85); }
+  to { transform: scale(1); }
+}
+@keyframes advent-appear {
+  from { opacity: 0; transform: scale(0.4) rotate(-12deg); }
+  to { opacity: 1; transform: none; }
+}
+
+/* --- Comutatorul de afișare --- */
+.advent-view-switch {
+  display: flex;
+  width: fit-content;
+  margin: 14px auto 6px;
+}
+
+/* --- Modul compact: ușa de azi mare + plăcuțe 1→25 --- */
+.advent-compact {
+  display: grid;
+  grid-template-columns: minmax(240px, 380px) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 48px);
+  align-items: start;
+}
+.advent-featured {
+  position: sticky;
+  top: 16px;
+  text-align: center;
+}
+.advent-featured__label {
+  margin-bottom: 10px;
+  color: #1e8449;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 0.85rem;
+}
+.advent-door--featured .advent-door__number { font-size: clamp(1.2rem, 3vw, 1.8rem); }
+
+.advent-tiles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(6px, 1.2vw, 12px);
+}
+@media (max-width: 700px) {
+  .advent-compact { grid-template-columns: 1fr; gap: 24px; }
+  .advent-featured { position: static; }
+  .advent-door--featured { width: min(260px, 72%); margin: 0 auto; }
+}
+
+.advent-tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 2px solid #e8d3a6;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #fffaf0, #f6e7c8);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Pătrate: aspect-ratio nu e de încredere pe <button>, deci padding în procente. */
+.advent-tile::before {
+  content: '';
+  display: block;
+  padding-top: 100%;
+}
+.advent-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12); }
+.advent-tile:focus-visible { outline: 3px solid #f1c40f; outline-offset: 3px; }
+
+.advent-tile__poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+.advent-tile__number {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1rem, 3.4vw, 1.6rem);
+  color: #8a5a00;
+}
+/* Pe plăcuțele deschise, numărul devine o bulină mică în colț, ca să se vadă posterul. */
+.advent-tile--open .advent-tile__number,
+.advent-tile--opening .advent-tile__number {
+  inset: auto auto 4px 4px;
+  min-width: 1.7em;
+  padding: 0 0.35em;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffe58a, #d4a017);
+  color: #5a3d00;
+  font-size: clamp(0.7rem, 1.8vw, 0.9rem);
+  line-height: 1.5;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+.advent-tile--today {
+  border-color: #d4a017;
+  background: linear-gradient(160deg, #fff3b0, #f1c40f);
+  animation: advent-glow 1.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
+}
+.advent-tile--today .advent-tile__number { color: #5a3d00; }
+.advent-tile--locked { cursor: not-allowed; }
+.advent-tile--locked .advent-tile__number {
+  inset: 6px auto auto 8px;
+  display: block;
+  font-size: clamp(0.75rem, 2vw, 1rem);
+  color: #a08458;
+}
+.advent-tile--locked:hover { transform: none; box-shadow: none; }
+.advent-tile__padlock {
+  position: absolute;
+  top: 56%;
+  left: 50%;
+  width: 52%;
+  transform: translate(-50%, -50%);
+  opacity: 0.85;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+}
+.advent-tile--bonus { border-color: #c0392b; animation: advent-appear 0.8s cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+
+/* --- Cardul filmului --- */
+.advent-modal .ant-modal-content {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 18px;
+}
+.advent-modal .ant-modal-content::before {
+  content: '';
+  display: block;
+  height: 14px;
+  background: repeating-linear-gradient(45deg, #c0392b 0 12px, #fff 12px 24px);
+}
+.advent-card {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) 1fr;
+  gap: 28px;
+  padding: 28px;
+  align-items: center;
+}
+.advent-card__poster {
+  aspect-ratio: 2 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, #3b1f0e, #120803);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+.advent-card__poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.advent-card__day {
+  color: #1e8449;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-size: 0.85rem;
+}
+.advent-card__title {
+  font-family: Georgia, serif;
+  color: #2c3e50;
+  font-size: clamp(1.3rem, 3.2vw, 1.8rem);
+  margin: 8px 0 22px;
+  padding-bottom: 12px;
+  border-bottom: 2px dashed #f0d9a8;
+}
+.advent-card__buttons {
+  display: grid;
+  gap: 14px;
+}
+@media (max-width: 600px) {
+  .advent-card {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 20px;
+  }
+  .advent-card__poster {
+    width: min(220px, 70%);
+    margin: 0 auto;
+  }
+  .advent-card__body { text-align: center; }
+}
+
+/* --- Butoanele de Crăciun --- */
+.advent-btn {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 8px;
+  min-height: 50px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.advent-btn:hover { transform: translateY(-2px) scale(1.02); }
+.advent-btn:active { transform: translateY(0) scale(0.98); }
+.advent-btn:focus-visible {
+  outline: 3px solid #2c3e50;
+  outline-offset: 3px;
+}
+.advent-btn__sub {
+  flex-basis: 100%;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+/* Baston de zahăr: dungi roșu-alb pe margine, care „curg” la hover. */
+.advent-btn--candy {
+  color: #fff;
+  border: 5px solid transparent;
+  background:
+    linear-gradient(180deg, #d9443a, #a93226) padding-box,
+    repeating-linear-gradient(45deg, #fff 0 9px, #c0392b 9px 18px) border-box;
+  background-size: auto, 51px 51px;
+  box-shadow: 0 6px 16px rgba(192, 57, 43, 0.35);
+}
+.advent-btn--candy:hover {
+  color: #fff;
+  animation: advent-candy-flow 0.8s linear infinite;
+}
+@keyframes advent-candy-flow {
+  to { background-position: 0 0, 51px 0; }
+}
+
+/* Turtă dulce: maro-caramel, cu glazură albă în zigzag. */
+.advent-btn--gingerbread {
+  color: #fff;
+  background: linear-gradient(180deg, #b5703a, #8a4f24);
+  box-shadow: 0 6px 16px rgba(138, 79, 36, 0.35), inset 0 0 0 4px #8a4f24;
+}
+.advent-btn--gingerbread::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 999px;
+  border: 2px dashed rgba(255, 255, 255, 0.9);
+  pointer-events: none;
+}
+.advent-btn--gingerbread:hover { color: #fff; }
+
+/* Glob auriu, cu o căciulă de zăpadă. */
+.advent-btn--ornament {
+  color: #4a3200;
+  background: radial-gradient(circle at 30% 25%, #fff6c2, #f1c40f 45%, #c99700);
+  box-shadow: 0 6px 16px rgba(201, 151, 0, 0.35), inset 0 -3px 0 rgba(0, 0, 0, 0.12);
+}
+.advent-btn--ornament::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 14%;
+  right: 14%;
+  height: 12px;
+  border-radius: 12px 12px 8px 8px;
+  background: #fff;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.08);
+}
+.advent-btn--ornament:hover { color: #4a3200; }
+
+/* „Mai puține animații”: ușile se deschid instant, fără strălucire pulsatorie. */
+@media (prefers-reduced-motion: reduce) {
+  .advent-door,
+  .advent-door *,
+  .advent-tile,
+  .advent-btn {
+    animation: none !important;
+    transition: none !important;
+  }
+}

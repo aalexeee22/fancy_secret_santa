@@ -59,6 +59,7 @@ export default function Home() {
           </p>
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
             <FestiveLink to="/create" tone="light" gift="🎁">{t.home.createGroup}</FestiveLink>
+            <FestiveLink to="/advent" tone="ghost">{t.home.movies}</FestiveLink>
             <FestiveLink to="/stats" tone="ghost">{t.home.stats}</FestiveLink>
           </div>
         </div>

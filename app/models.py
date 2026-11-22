@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy.dialects.postgresql import JSONB
 from . import db
 import secrets
 import string
@@ -77,3 +78,13 @@ class EmailDelivery(db.Model):
     status = db.Column(db.String(16), nullable=False, default='pending', index=True)
     attempted_at = db.Column(db.DateTime, nullable=True)
     attempt_token = db.Column(db.String(32), nullable=True)
+
+
+class AdventMovie(db.Model):
+    """Filmul din spatele unei ușițe de advent. Ziua 26 e ușița bonus."""
+    __tablename__ = 'advent_movies'
+    day = db.Column(db.Integer, primary_key=True, autoincrement=False)
+    # Informațiile filmului, exact ca în JSON-ul de import (titlu, linkuri).
+    info = db.Column(db.JSON().with_variant(JSONB(), 'postgresql'), nullable=False)
+    poster = db.Column(db.LargeBinary, nullable=True)
+    poster_type = db.Column(db.String(32), nullable=True)

@@ -76,6 +76,9 @@ def create_app():
     db.init_app(app)
 
     from .routes import bp
+    from .advent import advent_bp
+    # Înaintea rutei catch-all a frontendului din bp.
+    app.register_blueprint(advent_bp)
     app.register_blueprint(bp)
 
     from .security import ValidationError
@@ -104,8 +107,9 @@ def create_app():
         response.headers['Content-Security-Policy'] = CSP
         # /api/admin are aceeași adresă pentru toate grupurile (codul e în header), deci
         # un 410 „expirat” păstrat de browser ar apărea și la un grup nou. Nimic din API nu se salvează.
+        # Excepție: posterele deja deschise își pun singure un cache scurt.
         if request.path.startswith('/api/'):
-            response.headers['Cache-Control'] = 'no-store'
+            response.headers.setdefault('Cache-Control', 'no-store')
         return response
 
     with app.app_context():

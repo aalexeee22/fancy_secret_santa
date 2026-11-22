@@ -51,3 +51,25 @@ export interface Stats {
     created_at: string;
   }[];
 }
+
+// Calendarul de advent: filmul vine doar pentru ușițele deschise și cea de azi.
+export interface AdventMovie {
+  title: string;
+  url_IMDB?: string;
+  trailer_link?: string;
+  movie_link?: string;
+  has_poster: boolean;
+}
+
+export interface AdventDoor {
+  day: number;
+  state: 'open' | 'today' | 'locked';
+  bonus: boolean;
+  movie?: AdventMovie;
+}
+
+export interface AdventCalendar {
+  today: number;
+  days_until_start: number;
+  doors: AdventDoor[];
+}

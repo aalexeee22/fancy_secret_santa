@@ -6,3 +6,6 @@ gunicorn==23.0.0
 python-dotenv==1.0.1
 psycopg[binary]==3.2.3
 cryptography==43.0.3
+# Calendarul de advent: conversia posterelor la import și fusul orar (imaginea slim n-are tzdata)
+Pillow==11.0.0
+tzdata==2024.2

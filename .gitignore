@@ -26,3 +26,6 @@ security_tests/audit_robustness_results.json
 
 # Note locale
 tests.md
+
+# Sursa calendarului de advent (postere mari); după import totul e în baza de date
+movies/

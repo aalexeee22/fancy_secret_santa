@@ -12,3 +12,5 @@ security_tests
 migrations
 tests.md
 docker-compose*.yml
+movies
+plan.md

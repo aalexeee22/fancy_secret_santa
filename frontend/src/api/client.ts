@@ -1,7 +1,10 @@
 import axios from 'axios';
+import type { AdventCalendar } from '../types';
+
+const API_BASE = import.meta.env.DEV ? 'http://localhost:5000' : '';
 
 const api = axios.create({
-  baseURL: import.meta.env.DEV ? 'http://localhost:5000' : '',
+  baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
   // Mereu de la server: /api/admin are aceeași adresă pentru toate grupurile, iar un
   // răspuns „expirat” păstrat de browser de la un grup vechi ar ascunde grupul nou.
@@ -51,3 +54,11 @@ export const getStats = () =>
 
 export const getEmailConfig = () =>
   api.get<{ blocked_smtp_ports: number[]; unavailable_providers: string[] }>('/api/config').then(r => r.data);
+
+// Calendarul cu filme de Crăciun: serverul decide ce zi e.
+
+export const getAdvent = () =>
+  api.get<AdventCalendar>('/api/advent').then(r => r.data);
+
+export const adventPosterUrl = (door: number) =>
+  `${API_BASE}/api/advent/${door}/poster`;

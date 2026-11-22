@@ -20,6 +20,8 @@ const Admin = lazy(() => import('./pages/Admin'));
 const Join = lazy(() => import('./pages/Join'));
 const Success = lazy(() => import('./pages/Success'));
 const StatsPage = lazy(() => import('./pages/Stats'));
+const Advent = lazy(() => import('./pages/Advent'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function Navbar() {
   const location = useLocation();
@@ -40,6 +42,7 @@ function Navbar() {
         <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
           {[
             { path: '/create', icon: '🎄', label: t.nav.newGroup },
+            { path: '/advent', icon: '🎬', label: t.nav.advent },
             { path: '/stats', icon: '📊', label: t.nav.stats },
           ].map(({ path, icon, label }) => (
             <Link
@@ -90,6 +93,8 @@ function AppInner() {
             <Route path="/join/:code" element={<Join />} />
             <Route path="/join/:code/success" element={<Success />} />
             <Route path="/stats" element={<StatsPage />} />
+            <Route path="/advent" element={<Advent />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </main>
