@@ -310,7 +310,7 @@ const ro: Messages = {
     noMovie: 'Filmul e pe drum 🎬',
     viewLabel: 'Mod de afișare',
     viewCalendar: 'Calendar',
-    viewCompact: 'Compact',
+    viewCompact: 'Filmul zilei',
     featuredToday: 'Ușița de azi',
   },
 };

@@ -57,14 +57,14 @@ def admin_group_to_dict(group):
         'id': group.id,
         'admin_code': group.admin_code,
         'created_at': group.created_at.isoformat(),
-        'has_email': bool(group.smtp_email),
+        'has_email': bool(group.used_email),
         'participants': participants,
         'emails_sent': sum(1 for p in group.participants if p.email_sent),
         'emails_pending': len(pending_ids),
         'uncertain_emails': [p.name for p in group.participants if p.id in uncertain_ids],
         'failed_emails': [
             p.name for p in group.participants
-            if group.is_drawn and group.smtp_email and not p.email_sent and p.id not in pending_ids
+            if group.is_drawn and group.used_email and not p.email_sent and p.id not in pending_ids
         ],
         'admin_link_expired': group.admin_link_expired,
     }
@@ -108,6 +108,7 @@ def create_group():
         name=name,
         min_budget_ron=budget,
         smtp_email=smtp_email,
+        used_email=bool(smtp_email),
         smtp_password=encrypt_secret(smtp_password) if smtp_password else None,
         smtp_host=smtp_host,
         smtp_port=smtp_port,
@@ -152,6 +153,9 @@ def draw_names():
     group = find_admin_group()
     if not group:
         return jsonify({'error': t('group_not_found')}), 404
+    if group.personal_data_erased_at:
+        db.session.rollback()
+        return jsonify({'error': t('admin_link_expired'), 'expired': True}), 410
     if group.is_drawn:
         db.session.rollback()
         return jsonify({'error': t('already_drawn')}), 409
@@ -199,6 +203,9 @@ def delete_participant(participant_id):
     group = find_admin_group()
     if not group:
         return jsonify({'error': t('group_not_found')}), 404
+    if group.personal_data_erased_at:
+        db.session.rollback()
+        return jsonify({'error': t('admin_link_expired'), 'expired': True}), 410
     if group.is_drawn:
         db.session.rollback()
         return jsonify({'error': t('cannot_remove_after_draw')}), 400
@@ -224,7 +231,7 @@ def add_participant(code):
     group = SantaGroup.query.filter_by(code=code).with_for_update().first()
     if not group:
         return jsonify({'error': t('group_not_found')}), 404
-    if group.is_drawn:
+    if group.is_drawn or group.personal_data_erased_at:
         db.session.rollback()
         return jsonify({'error': t('registration_closed')}), 400
     if len(group.participants) >= MAX_PARTICIPANTS:
@@ -255,7 +262,7 @@ def get_stats():
     total_groups = SantaGroup.query.count()
     total_participants = Participant.query.count()
     drawn_groups = SantaGroup.query.filter_by(is_drawn=True).count()
-    groups_with_email = SantaGroup.query.filter(SantaGroup.smtp_email.isnot(None)).count()
+    groups_with_email = SantaGroup.query.filter(SantaGroup.used_email.is_(True)).count()
 
     budgets = [g.min_budget_ron for g in SantaGroup.query.all()]
     # Cheia „none” e tradusă de frontend; intervalele se afișează ca atare.

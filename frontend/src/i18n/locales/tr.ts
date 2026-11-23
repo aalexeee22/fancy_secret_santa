@@ -310,7 +310,7 @@ const tr: Messages = {
     noMovie: 'Film yolda 🎬',
     viewLabel: 'Görünüm',
     viewCalendar: 'Takvim',
-    viewCompact: 'Kompakt',
+    viewCompact: 'Günün filmi',
     featuredToday: 'Bugünün kapısı',
   },
 };

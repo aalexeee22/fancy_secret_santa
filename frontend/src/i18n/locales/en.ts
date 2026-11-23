@@ -309,7 +309,7 @@ const en = {
     noMovie: 'The movie is on its way 🎬',
     viewLabel: 'Calendar view',
     viewCalendar: 'Calendar',
-    viewCompact: 'Compact',
+    viewCompact: 'Movie of the day',
     featuredToday: 'Today\'s door',
   },
 };

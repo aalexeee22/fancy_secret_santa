@@ -120,10 +120,28 @@ def create_app():
             ('santa_groups', 'smtp_username', 'VARCHAR(200)'),
             ('santa_groups', 'language', 'VARCHAR(5)'),
             ('participants', 'language', 'VARCHAR(5)'),
+            ('santa_groups', 'used_email', 'BOOLEAN'),
+            ('santa_groups', 'personal_data_erased_at', 'TIMESTAMP'),
         ):
             if column not in {c['name'] for c in inspect(db.engine).get_columns(table)}:
                 db.session.execute(text(f'ALTER TABLE {table} ADD COLUMN {optional}{column} {sql_type}'))
                 db.session.commit()
+        # Grupurile existente: „a folosit email” se deduce din adresa încă salvată sau din
+        # coada de mailuri (la unele grupuri vechi adresa nu mai e, dar mailurile au plecat).
+        db.session.execute(text(
+            'UPDATE santa_groups SET used_email = TRUE '
+            'WHERE (used_email IS NULL OR used_email = FALSE) AND (smtp_email IS NOT NULL OR EXISTS '
+            '(SELECT 1 FROM email_deliveries d WHERE d.group_id = santa_groups.id))'
+        ))
+        db.session.execute(text('UPDATE santa_groups SET used_email = FALSE WHERE used_email IS NULL'))
+        if db.engine.dialect.name == 'postgresql':
+            # Numele și emailul participanților se golesc după trimiterea mailurilor.
+            for column in ('name', 'email'):
+                db.session.execute(text(f'ALTER TABLE participants ALTER COLUMN {column} DROP NOT NULL'))
+        db.session.commit()
+        # Curăță grupurile terminate sau din sezoanele trecute (și la fiecare 15 minute în worker).
+        from .services.privacy_service import purge_personal_data
+        purge_personal_data()
         # gunicorn face fork după create_app (preload_app=True); fiecare worker
         # trebuie să-și deschidă propriile conexiuni, nu să le moștenească.
         db.engine.dispose()

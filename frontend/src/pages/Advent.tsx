@@ -302,7 +302,7 @@ export default function Advent() {
           onChange={changeView}
           options={[
             { value: 'calendar', label: `🚪 ${ta.viewCalendar}` },
-            { value: 'compact', label: `▦ ${ta.viewCompact}` },
+            { value: 'compact', label: `🎬 ${ta.viewCompact}` },
           ]}
         />
         {calendar && calendar.today === 0 && (

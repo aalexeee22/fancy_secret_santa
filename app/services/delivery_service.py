@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 from ..models import db, EmailDelivery, Participant, SantaGroup
 from .email_service import EmailService, DeliveryUncertain
+from .privacy_service import erase_personal_data
 
 
 def utcnow():
@@ -92,6 +93,7 @@ def deliver_one():
         db.session.flush()
         remaining = Participant.query.filter_by(group_id=group_id, email_sent=False).count()
         if remaining == 0:
-            locked_group.smtp_password = None
+            # Toți și-au primit perechea: parola, numele și emailurile nu mai sunt necesare.
+            erase_personal_data(locked_group)
     db.session.commit()
     return True

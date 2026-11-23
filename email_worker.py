@@ -5,6 +5,7 @@ import time
 
 from app import create_app, db
 from app.services.delivery_service import deliver_one, expire_stale_deliveries, wakeup_path
+from app.services.privacy_service import purge_personal_data
 
 
 def main():
@@ -30,6 +31,7 @@ def main():
             try:
                 if now >= next_scan:
                     expire_stale_deliveries()
+                    purge_personal_data()
                     next_scan = now + 900
                 worked = deliver_one()
             except Exception:

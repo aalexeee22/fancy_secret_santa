@@ -31,6 +31,10 @@ class SantaGroup(db.Model):
     smtp_port = db.Column(db.Integer, nullable=True)
     # Limba organizatorului, pentru emailul cu linkul de admin.
     language = db.Column(db.String(5), nullable=True)
+    # Păstrat și după ștergerea emailului organizatorului, pentru statistici.
+    used_email = db.Column(db.Boolean, nullable=True, default=False)
+    # Setat când numele, emailurile și perechile au fost șterse; grupul e apoi închis.
+    personal_data_erased_at = db.Column(db.DateTime, nullable=True)
     participants = db.relationship(
         'Participant',
         backref='group',
@@ -42,7 +46,7 @@ class SantaGroup(db.Model):
     @property
     def admin_link_expired(self):
         # După tragere, linkul rămâne valid doar cât mai sunt emailuri de retrimis.
-        return bool(self.is_drawn and not self.smtp_password)
+        return bool(self.personal_data_erased_at or (self.is_drawn and not self.smtp_password))
 
 
 class Participant(db.Model):
@@ -52,8 +56,9 @@ class Participant(db.Model):
     )
     id = db.Column(db.Integer, primary_key=True)
     group_id = db.Column(db.Integer, db.ForeignKey('santa_groups.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(200), nullable=False)
+    # Goale după ce grupul și-a primit toate mailurile (vezi services/privacy_service.py).
+    name = db.Column(db.String(100), nullable=True)
+    email = db.Column(db.String(200), nullable=True)
     wishlist = db.Column(db.Text, nullable=True)
     assigned_to_id = db.Column(db.Integer, db.ForeignKey('participants.id'), nullable=True)
     assigned_to = db.relationship(

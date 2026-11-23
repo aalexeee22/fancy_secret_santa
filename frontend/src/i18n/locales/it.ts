@@ -310,7 +310,7 @@ const it: Messages = {
     noMovie: 'Il film sta arrivando 🎬',
     viewLabel: 'Visualizzazione',
     viewCalendar: 'Calendario',
-    viewCompact: 'Compatto',
+    viewCompact: 'Il film del giorno',
     featuredToday: 'La porta di oggi',
   },
 };

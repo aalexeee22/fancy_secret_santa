@@ -310,7 +310,7 @@ const fr: Messages = {
     noMovie: 'Le film arrive bientôt 🎬',
     viewLabel: 'Affichage',
     viewCalendar: 'Calendrier',
-    viewCompact: 'Compact',
+    viewCompact: 'Le film du jour',
     featuredToday: 'La porte du jour',
   },
 };
