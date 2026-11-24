@@ -93,3 +93,57 @@ class AdventMovie(db.Model):
     info = db.Column(db.JSON().with_variant(JSONB(), 'postgresql'), nullable=False)
     poster = db.Column(db.LargeBinary, nullable=True)
     poster_type = db.Column(db.String(32), nullable=True)
+
+
+# --- Dirty Santa: jocuri temporare, fără conturi; se șterg singure (vezi services/dirty_cleanup.py) ---
+
+# Fără 0/O și 1/I/L, ca să nu poată fi confundate la citit de pe ecran.
+DIRTY_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+DIRTY_CODE_LENGTH = 6
+
+
+def generate_dirty_code():
+    return ''.join(secrets.choice(DIRTY_CODE_ALPHABET) for _ in range(DIRTY_CODE_LENGTH))
+
+
+class DirtyGame(db.Model):
+    __tablename__ = 'dirty_games'
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(DIRTY_CODE_LENGTH), unique=True, nullable=False, default=generate_dirty_code)
+    # Doar hash-ul: tokenul în sine stă numai pe ecranul organizatorului.
+    host_token_hash = db.Column(db.String(64), unique=True, nullable=False)
+    status = db.Column(db.String(16), nullable=False, default='lobby')  # lobby / playing / finished
+    steal_limit = db.Column(db.Integer, nullable=False, default=3)
+    final_round = db.Column(db.Boolean, nullable=False, default=True)
+    budget = db.Column(db.Float, nullable=True)  # doar afișat
+    # Crește la orice schimbare; telefoanele întreabă „s-a schimbat ceva după versiunea X?”.
+    version = db.Column(db.Integer, nullable=False, default=1)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    started_at = db.Column(db.DateTime, nullable=True)
+    finished_at = db.Column(db.DateTime, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+
+class DirtyPlayer(db.Model):
+    __tablename__ = 'dirty_players'
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('dirty_games.id'), nullable=False, index=True)
+    nickname = db.Column(db.String(20), nullable=False)
+    token_hash = db.Column(db.String(64), unique=True, nullable=False)
+    turn_order = db.Column(db.Integer, nullable=True)  # setată la start
+    # Adăugat de organizator, fără telefon: joacă organizatorul în locul lui, de pe ecranul mare.
+    added_by_host = db.Column(db.Boolean, default=False, nullable=True)
+    joined_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+
+class DirtyMove(db.Model):
+    __tablename__ = 'dirty_moves'
+    __table_args__ = (db.UniqueConstraint('game_id', 'seq', name='uq_dirty_move_seq'),)
+    id = db.Column(db.Integer, primary_key=True)
+    game_id = db.Column(db.Integer, db.ForeignKey('dirty_games.id'), nullable=False, index=True)
+    seq = db.Column(db.Integer, nullable=False)
+    kind = db.Column(db.String(16), nullable=False)  # open / steal / final_swap / keep
+    actor_id = db.Column(db.Integer, db.ForeignKey('dirty_players.id'), nullable=False)
+    target_seq = db.Column(db.Integer, nullable=True)  # cadoul luat = seq-ul mutării open
+    by_host = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)

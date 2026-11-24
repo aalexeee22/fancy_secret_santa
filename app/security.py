@@ -34,6 +34,7 @@ MAX_LENGTHS = {
     'wishlist': 2000,
     'smtp_host': 200,
     'smtp_password': 200,
+    'nickname': 20,
 }
 
 MAX_BUDGET_RON = 100_000

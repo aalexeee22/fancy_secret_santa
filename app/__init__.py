@@ -70,15 +70,17 @@ def create_app():
     render_url = os.environ.get('RENDER_EXTERNAL_URL', '').rstrip('/')
     if render_url and render_url not in origins:
         origins.append(render_url)
-    CORS(app, resources={r"/api/*": {"origins": origins}}, allow_headers=['Content-Type', 'Accept-Language', 'X-Admin-Code'])
+    CORS(app, resources={r"/api/*": {"origins": origins}}, allow_headers=['Content-Type', 'Accept-Language', 'X-Admin-Code', 'X-Player-Token', 'X-Host-Token'])
 
     limiter.init_app(app)
     db.init_app(app)
 
     from .routes import bp
     from .advent import advent_bp
+    from .dirty_santa import dirty_bp
     # Înaintea rutei catch-all a frontendului din bp.
     app.register_blueprint(advent_bp)
+    app.register_blueprint(dirty_bp)
     app.register_blueprint(bp)
 
     from .security import ValidationError
@@ -122,6 +124,7 @@ def create_app():
             ('participants', 'language', 'VARCHAR(5)'),
             ('santa_groups', 'used_email', 'BOOLEAN'),
             ('santa_groups', 'personal_data_erased_at', 'TIMESTAMP'),
+            ('dirty_players', 'added_by_host', 'BOOLEAN'),
         ):
             if column not in {c['name'] for c in inspect(db.engine).get_columns(table)}:
                 db.session.execute(text(f'ALTER TABLE {table} ADD COLUMN {optional}{column} {sql_type}'))
@@ -141,7 +144,9 @@ def create_app():
         db.session.commit()
         # Curăță grupurile terminate sau din sezoanele trecute (și la fiecare 15 minute în worker).
         from .services.privacy_service import purge_personal_data
+        from .services.dirty_cleanup import purge_dirty_games
         purge_personal_data()
+        purge_dirty_games()
         # gunicorn face fork după create_app (preload_app=True); fiecare worker
         # trebuie să-și deschidă propriile conexiuni, nu să le moștenească.
         db.engine.dispose()

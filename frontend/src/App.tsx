@@ -21,11 +21,15 @@ const Join = lazy(() => import('./pages/Join'));
 const Success = lazy(() => import('./pages/Success'));
 const StatsPage = lazy(() => import('./pages/Stats'));
 const Advent = lazy(() => import('./pages/Advent'));
+const DirtySanta = lazy(() => import('./pages/DirtySanta'));
+const DirtyGame = lazy(() => import('./pages/DirtyGame'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function Navbar() {
   const location = useLocation();
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(`${path}/`);
+  // În timpul unui joc Dirty Santa sania nu trece peste ecran: are jocul animațiile lui.
+  const inDirtyGame = location.pathname.startsWith('/dirty-santa/');
   const { t } = useI18n();
 
   return (
@@ -43,6 +47,7 @@ function Navbar() {
           {[
             { path: '/create', icon: '🎄', label: t.nav.newGroup },
             { path: '/advent', icon: '🎬', label: t.nav.advent },
+            { path: '/dirty-santa', icon: '😈', label: t.nav.dirty },
             { path: '/stats', icon: '📊', label: t.nav.stats },
           ].map(({ path, icon, label }) => (
             <Link
@@ -73,7 +78,7 @@ function Navbar() {
         </div>
       </div>
       <ChristmasLights />
-      <SantaSleigh />
+      {!inDirtyGame && <SantaSleigh />}
     </nav>
   );
 }
@@ -94,6 +99,8 @@ function AppInner() {
             <Route path="/join/:code/success" element={<Success />} />
             <Route path="/stats" element={<StatsPage />} />
             <Route path="/advent" element={<Advent />} />
+            <Route path="/dirty-santa" element={<DirtySanta />} />
+            <Route path="/dirty-santa/:code" element={<DirtyGame />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

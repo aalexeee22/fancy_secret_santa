@@ -73,3 +73,73 @@ export interface AdventCalendar {
   days_until_start: number;
   doors: AdventDoor[];
 }
+
+// --- Dirty Santa ---
+
+export type DirtyStatus = 'lobby' | 'playing' | 'finished';
+export type DirtyMoveKind = 'open' | 'steal' | 'final_swap' | 'keep';
+
+export interface DirtyPlayer {
+  id: number;
+  nickname: string;
+  turn_order: number | null;
+  gift_id: number | null;
+  /** Adăugat de organizator, fără telefon: joacă organizatorul pentru el, de pe ecranul mare. */
+  local: boolean;
+}
+
+export interface DirtyGift {
+  id: number;
+  number: number; // al câtelea cadou desfăcut: #1, #2…
+  opened_by: number;
+  holder_id: number;
+  steals: number;
+  locked: boolean;
+  /** furat runda asta: nu mai poate fi furat până nu se desface un cadou nou */
+  /** jucătorul de la rând îl poate lua acum */
+  can_take: boolean;
+}
+
+export interface DirtyMove {
+  seq: number;
+  kind: DirtyMoveKind;
+  actor_id: number;
+  gift_id: number | null;
+  victim_id: number | null;
+  by_host: boolean;
+  at: string;
+}
+
+export interface DirtyGameState {
+  code: string;
+  status: DirtyStatus;
+  version: number;
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  settings: { steal_limit: number; final_round: boolean; budget: number | null };
+  is_host: boolean;
+  me: number | null;
+  players: DirtyPlayer[];
+  gifts: DirtyGift[];
+  moves: DirtyMove[];
+  turn: { player_id: number; phase: 'main' | 'final'; round: number; rounds: number } | null;
+  unopened: number;
+  awards: { biggest_thief: number[] | null; most_wanted_gift: number[] | null; unlucky: number[] | null } | null;
+}
+
+export interface DirtyGameInfo {
+  code: string;
+  status: DirtyStatus;
+  started_at: string | null;
+  player_count: number;
+  budget: number | null;
+  steal_limit: number;
+}
+
+export interface DirtyJoinResult {
+  player_id: number;
+  nickname: string;
+  token: string;
+  code: string;
+}

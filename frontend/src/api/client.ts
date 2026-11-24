@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AdventCalendar } from '../types';
+import type { AdventCalendar, DirtyGameInfo, DirtyGameState, DirtyJoinResult, DirtyMoveKind } from '../types';
 
 const API_BASE = import.meta.env.DEV ? 'http://localhost:5000' : '';
 
@@ -62,3 +62,51 @@ export const getAdvent = () =>
 
 export const adventPosterUrl = (door: number) =>
   `${API_BASE}/api/advent/${door}/poster`;
+
+// Dirty Santa: tokenurile merg în header, nu în URL, ca să nu apară în loguri.
+
+export interface DirtyAuth {
+  hostToken?: string;
+  playerToken?: string;
+}
+
+const dirtyHeaders = (auth: DirtyAuth) => ({
+  headers: auth.hostToken ? { 'X-Host-Token': auth.hostToken } : { 'X-Player-Token': auth.playerToken ?? '' },
+});
+
+export const createDirtyGame = (data: { steal_limit: number; final_round: boolean; budget?: number }) =>
+  api.post<{ code: string; host_token: string }>('/api/dirty', data).then(r => r.data);
+
+export const getDirtyInfo = (code: string) =>
+  api.get<DirtyGameInfo>(`/api/dirty/${encodeURIComponent(code)}/info`).then(r => r.data);
+
+export const joinDirtyGame = (code: string, nickname: string) =>
+  api.post<DirtyJoinResult>(`/api/dirty/${encodeURIComponent(code)}/join`, { nickname }).then(r => r.data);
+
+/** null = nimic nou față de versiunea `since`. */
+export const getDirtyGame = (code: string, auth: DirtyAuth, since?: number) =>
+  api.get<DirtyGameState | ''>(`/api/dirty/${encodeURIComponent(code)}`, {
+    ...dirtyHeaders(auth),
+    params: since == null ? undefined : { since },
+  }).then(r => (r.status === 204 || !r.data ? null : r.data));
+
+export const startDirtyGame = (code: string, auth: DirtyAuth) =>
+  api.post<DirtyGameState>(`/api/dirty/${encodeURIComponent(code)}/start`, null, dirtyHeaders(auth)).then(r => r.data);
+
+export const makeDirtyMove = (code: string, auth: DirtyAuth, move: {
+  kind: DirtyMoveKind;
+  version: number;
+  gift_id?: number;
+}) => api.post<DirtyGameState>(`/api/dirty/${encodeURIComponent(code)}/move`, move, dirtyHeaders(auth)).then(r => r.data);
+
+export const undoDirtyMove = (code: string, auth: DirtyAuth, version: number) =>
+  api.post<DirtyGameState>(`/api/dirty/${encodeURIComponent(code)}/undo`, { version }, dirtyHeaders(auth)).then(r => r.data);
+
+export const addDirtyPlayer = (code: string, auth: DirtyAuth, nickname: string) =>
+  api.post<DirtyGameState>(`/api/dirty/${encodeURIComponent(code)}/players`, { nickname }, dirtyHeaders(auth)).then(r => r.data);
+
+export const removeDirtyPlayer = (code: string, auth: DirtyAuth, playerId: number) =>
+  api.delete<DirtyGameState>(`/api/dirty/${encodeURIComponent(code)}/players/${playerId}`, dirtyHeaders(auth)).then(r => r.data);
+
+export const reconnectDirtyPlayer = (code: string, auth: DirtyAuth, playerId: number) =>
+  api.post<DirtyJoinResult>(`/api/dirty/${encodeURIComponent(code)}/players/${playerId}/reconnect`, null, dirtyHeaders(auth)).then(r => r.data);
